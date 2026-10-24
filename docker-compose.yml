@@ -29,7 +29,7 @@ services:
       JWT_EXPIRE: 7d
       PORT: 3000
       NODE_ENV: development
-      FRONTEND_URL: http://localhost:8080
+      FRONTEND_URL: http://localhost:8081
       OVERPASS_API_URL: https://overpass-api.de/api/interpreter
       NOMINATIM_API_URL: https://nominatim.openstreetmap.org
     volumes:
@@ -57,7 +57,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8081:8081"
     init: true
     environment:
       VITE_API_URL: http://localhost:3000/api
