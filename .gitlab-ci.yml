@@ -1,0 +1,111 @@
+stages:
+  - validate
+  - test
+  - security
+  - build
+
+variables:
+  BACKEND_DIR: bean-beacon-backend
+  FRONTEND_DIR: bean-beacon-frontend
+  # Docker Buildx needs this when using the docker:dind service
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# --- VALIDATE: typecheck backend, lint + typecheck frontend ---
+
+backend:typecheck:
+  stage: validate
+  image: node:20-alpine
+  cache:
+    key: backend-npm
+    paths:
+      - $BACKEND_DIR/node_modules
+  script:
+    - cd $BACKEND_DIR
+    - npm ci
+    - npm run build   # runs tsc, fails the job on any type error
+
+frontend:lint:
+  stage: validate
+  image: node:20-alpine
+  cache:
+    key: frontend-npm
+    paths:
+      - $FRONTEND_DIR/node_modules
+  script:
+    - cd $FRONTEND_DIR
+    - npm ci
+    - npm run lint
+
+frontend:build:
+  stage: validate
+  image: node:20-alpine
+  cache:
+    key: frontend-npm
+    paths:
+      - $FRONTEND_DIR/node_modules
+  script:
+    - cd $FRONTEND_DIR
+    - npm ci
+    - npm run build
+
+# --- TEST: backend unit tests (vitest). Frontend has no test script yet. ---
+
+backend:test:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: backend-npm
+    paths:
+      - $BACKEND_DIR/node_modules
+  script:
+    - cd $BACKEND_DIR
+    - npm ci
+    - npm test -- run   # vitest run (non-watch mode in CI)
+
+# --- SECURITY: dependency audit + secret scanning ---
+# A broken test above already blocks these from running (stages run in order,
+# later stages only start if earlier ones pass) — this is what satisfies the
+# guide's "a broken test prevents the pipeline from deploying a release".
+
+backend:audit:
+  stage: security
+  image: node:20-alpine
+  script:
+    - cd $BACKEND_DIR
+    - npm audit --audit-level=high || true   # report only, don't hard-fail the pipeline on transitive deps you don't control
+
+frontend:audit:
+  stage: security
+  image: node:20-alpine
+  script:
+    - cd $FRONTEND_DIR
+    - npm audit --audit-level=high || true
+
+gitleaks:
+  stage: security
+  image: zricethezav/gitleaks:latest
+  script:
+    - gitleaks detect --source . --verbose --redact
+  allow_failure: false   # a real secret leak should block the pipeline
+
+# --- BUILD: build both Docker images (not pushed yet — that's Étape 4) ---
+
+backend:docker-build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t bean-beacon-backend:$CI_COMMIT_SHORT_SHA -f $BACKEND_DIR/Dockerfile.dev $BACKEND_DIR
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+frontend:docker-build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t bean-beacon-frontend:$CI_COMMIT_SHORT_SHA -f $FRONTEND_DIR/Dockerfile.dev $FRONTEND_DIR
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
