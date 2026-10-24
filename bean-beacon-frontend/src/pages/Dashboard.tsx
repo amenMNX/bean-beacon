@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
@@ -41,8 +42,8 @@ const Dashboard = () => {
     try {
       await cafesApi.setStatus(id, status);
       toast({ title: status === "approved" ? "Café approved" : "Café rejected" });
-    } catch (err: any) {
-      toast({ title: "Couldn't update", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't update", description: getErrorMessage(err), variant: "destructive" });
     }
     refresh();
   };
@@ -51,8 +52,8 @@ const Dashboard = () => {
     try {
       await cafesApi.remove(id);
       toast({ title: "Café removed" });
-    } catch (err: any) {
-      toast({ title: "Couldn't remove", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't remove", description: getErrorMessage(err), variant: "destructive" });
     }
     refresh();
   };
@@ -61,8 +62,8 @@ const Dashboard = () => {
     try {
       await reviewsApi.remove(cafeId, id);
       toast({ title: "Review removed" });
-    } catch (err: any) {
-      toast({ title: "Couldn't remove", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't remove", description: getErrorMessage(err), variant: "destructive" });
     }
     refresh();
   };

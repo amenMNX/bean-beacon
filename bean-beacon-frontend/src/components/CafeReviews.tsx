@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
 
 const Stars = ({ value, onPick }: { value: number; onPick?: (n: number) => void }) => (
   <div className="flex gap-0.5">
@@ -52,8 +53,8 @@ export const ReviewsPanel = ({ cafeId }: { cafeId: string }) => {
       setRating(0);
       qc.invalidateQueries({ queryKey: ["reviews", cafeId] });
       qc.invalidateQueries({ queryKey: ["cafes"] });
-    } catch (err: any) {
-      toast({ title: "Couldn't save review", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't save review", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setBusy(false);
     }

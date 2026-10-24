@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { filterGroups, type FilterGroup } from "@/data/shops";
 import { useCafes } from "@/hooks/useCafes";
+import { getErrorMessage } from "@/lib/utils";
 
 const categories = ["Café", "Specialty", "Roastery", "Chain"];
 const groupLabels: Record<FilterGroup, string> = { coffeeTypes: "Coffee types", atmosphere: "Atmosphere", amenities: "Amenities" };
@@ -28,8 +29,8 @@ const AuthForm = () => {
     try {
       if (mode === "in") await auth.signIn(email, password);
       else await auth.signUp(email, password, name);
-    } catch (err: any) {
-      toast({ title: "Couldn't continue", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't continue", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setBusy(false);
     }
@@ -85,8 +86,8 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
       setTags(emptyTags);
       (e.target as HTMLFormElement).reset();
       onSaved();
-    } catch (err: any) {
-      toast({ title: "Couldn't save café", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't save café", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setBusy(false);
     }
@@ -145,8 +146,8 @@ const Manage = () => {
     try {
       await cafesApi.remove(id);
       refresh();
-    } catch (err: any) {
-      toast({ title: "Couldn't delete", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Couldn't delete", description: getErrorMessage(err), variant: "destructive" });
     }
   };
 
