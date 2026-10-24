@@ -4,9 +4,10 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/index.js";
 
 const generateToken = (userId: string, email: string, role: string) => {
-  return jwt.sign({ userId, email, role }, config.jwtSecret, {
-    expiresIn: config.jwtExpire,
-  });
+  const options: jwt.SignOptions = {
+    expiresIn: config.jwtExpire as jwt.SignOptions["expiresIn"],
+  };
+  return jwt.sign({ userId, email, role }, config.jwtSecret, options);
 };
 
 export const register = async (req: Request, res: Response) => {

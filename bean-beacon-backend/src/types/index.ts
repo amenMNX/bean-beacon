@@ -14,6 +14,7 @@ export interface UserDocument {
   role: "user" | "admin";
   createdAt: Date;
   updatedAt: Date;
+  matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
 export interface CafeLocation {

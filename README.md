@@ -49,7 +49,7 @@ From the repository root, start the frontend, backend, and MongoDB:
 docker compose up --build
 ```
 
-The frontend is available at `http://localhost:8080` and the API at
+The frontend is available at `http://localhost:8081` and the API at
 `http://localhost:3000`. MongoDB data is persisted in the `mongo-data` volume.
 For local development, set `JWT_SECRET` in your shell or a root `.env` file
 before starting Compose; the Compose default is only for local development.
@@ -82,7 +82,7 @@ Stop the services with `docker compose down` (the database volume is retained).
    ```bash
    npm run dev
    ```
-   Frontend will be available at `http://localhost:8080`
+   Frontend will be available at `http://localhost:8081`
 
 ### Backend Setup
 
@@ -108,7 +108,7 @@ Stop the services with `docker compose down` (the database volume is retained).
    JWT_EXPIRE=7d
    PORT=3000
    NODE_ENV=development
-   FRONTEND_URL=http://localhost:8080
+   FRONTEND_URL=http://localhost:8081
    ```
 
 5. **Start development server:**
