@@ -1,0 +1,71 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./bean-beacon-backend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    init: true
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/bean-beacon
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_me}
+      JWT_EXPIRE: 7d
+      PORT: 3000
+      NODE_ENV: development
+      FRONTEND_URL: http://localhost:8080
+      OVERPASS_API_URL: https://overpass-api.de/api/interpreter
+      NOMINATIM_API_URL: https://nominatim.openstreetmap.org
+    volumes:
+      - ./bean-beacon-backend:/app
+      - backend-node-modules:/app/node_modules
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./bean-beacon-frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    init: true
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+    volumes:
+      - ./bean-beacon-frontend:/app
+      - frontend-node-modules:/app/node_modules
+
+volumes:
+  mongo-data:
+  backend-node-modules:
+  frontend-node-modules:
