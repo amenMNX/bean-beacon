@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { CoffeeShop } from "@/data/shops";
 import { mapsLink } from "@/components/CoffeeShopCard";
 
-declare global { interface Window { google?: any; __initCafeMap?: () => void } }
+declare global {
+  interface Window {
+    google?: typeof google;
+    __initCafeMap?: () => void;
+  }
+}
 
 let loader: Promise<void> | null = null;
 const loadMaps = () => {
@@ -23,8 +28,8 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 export const CafeMap = ({ shops }: { shops: CoffeeShop[] }) => {
   const el = useRef<HTMLDivElement>(null);
-  const map = useRef<any>(null);
-  const markers = useRef<any[]>([]);
+  const map = useRef<google.maps.Map | null>(null);
+  const markers = useRef<google.maps.Marker[]>([]);
   const [ready, setReady] = useState(false);
   const pinned = shops.filter((s) => s.lat != null && s.lng != null);
 
