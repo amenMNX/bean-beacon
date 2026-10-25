@@ -92,20 +92,19 @@ gitleaks:
 
 backend:docker-build:
   stage: build
-  image: docker:24
-  services:
-    - docker:24-dind
+  tags:
+    - bean-beacon   # matches the tag GitLab assigned your runner
   script:
-    - docker build -t bean-beacon-backend:$CI_COMMIT_SHORT_SHA -f $BACKEND_DIR/Dockerfile.dev $BACKEND_DIR
+    - docker build -t bean-beacon-backend:$CI_COMMIT_SHORT_SHA -f bean-beacon-backend/Dockerfile.dev bean-beacon-backend
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-
+ 
 frontend:docker-build:
   stage: build
-  image: docker:24
-  services:
-    - docker:24-dind
+  tags:
+    - bean-beacon
   script:
-    - docker build -t bean-beacon-frontend:$CI_COMMIT_SHORT_SHA -f $FRONTEND_DIR/Dockerfile.dev $FRONTEND_DIR
+    - docker build -t bean-beacon-frontend:$CI_COMMIT_SHORT_SHA -f bean-beacon-frontend/Dockerfile.dev bean-beacon-frontend
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+ 
