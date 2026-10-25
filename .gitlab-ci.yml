@@ -82,18 +82,18 @@ gitleaks:
     - docker run --rm -v "${PWD}:/path" zricethezav/gitleaks:latest detect --source="/path" --verbose --redact
   allow_failure: false   # a real secret leak should block the pipeline
 
-# --- BUILD: build both Docker images (not pushed yet — that's Étape 4) ---
+# --- BUILD: production Docker images ---
 
 backend:docker-build:
   stage: build
   script:
-    - docker build -t bean-beacon-backend:$CI_COMMIT_SHORT_SHA -f $BACKEND_DIR/Dockerfile.dev $BACKEND_DIR
+    - docker build -t bean-beacon-backend:$CI_COMMIT_SHORT_SHA -f $BACKEND_DIR/Dockerfile $BACKEND_DIR
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: '$CI_COMMIT_BRANCH'
 
 frontend:docker-build:
   stage: build
   script:
-    - docker build -t bean-beacon-frontend:$CI_COMMIT_SHORT_SHA -f $FRONTEND_DIR/Dockerfile.dev $FRONTEND_DIR
+    - docker build -t bean-beacon-frontend:$CI_COMMIT_SHORT_SHA -f $FRONTEND_DIR/Dockerfile $FRONTEND_DIR
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: '$CI_COMMIT_BRANCH'
