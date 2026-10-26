@@ -12,7 +12,7 @@ variables:
   BACKEND_DIR: bean-beacon-backend
   FRONTEND_DIR: bean-beacon-frontend
 
-# --- VALIDATE: typecheck backend, lint + typecheck frontend ---
+# --- VALIDATE: typecheck both projects and lint the frontend ---
 
 backend:typecheck:
   stage: validate
@@ -35,6 +35,17 @@ frontend:lint:
     - cd $FRONTEND_DIR
     - npm ci
     - npm run lint
+
+frontend:typecheck:
+  stage: validate
+  cache:
+    key: frontend-npm
+    paths:
+      - $FRONTEND_DIR/node_modules
+  script:
+    - cd $FRONTEND_DIR
+    - npm ci
+    - npm run typecheck
 
 frontend:build:
   stage: validate
@@ -68,13 +79,13 @@ backend:audit:
   stage: security
   script:
     - cd $BACKEND_DIR
-    - npm audit --audit-level=high || true   # report only, don't hard-fail on transitive deps you don't control
+    - npm audit --audit-level=moderate
 
 frontend:audit:
   stage: security
   script:
     - cd $FRONTEND_DIR
-    - npm audit --audit-level=high || true
+    - npm audit --audit-level=moderate
 
 gitleaks:
   stage: security

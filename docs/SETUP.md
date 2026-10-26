@@ -4,7 +4,7 @@ Quick reference for setting up the project locally.
 
 ## Prerequisites
 
-- Node.js 16+ 
+- Node.js 16+
 - npm or yarn
 - MongoDB (local or MongoDB Atlas)
 - Git
@@ -20,7 +20,7 @@ chmod +x setup.sh
 This will:
 - Check Node.js installation
 - Install frontend dependencies
-- Install backend dependencies  
+- Install backend dependencies
 - Create .env files from examples
 
 ## Manual Setup
@@ -86,6 +86,7 @@ PORT=3000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 ```
+The example secret is for local development only. Production requires a unique random `JWT_SECRET`.
 
 ## Running the Application
 
@@ -158,7 +159,7 @@ Install recommended extensions:
 code bean-beacon-app-main
 ```
 
-### View Backend Code  
+### View Backend Code
 ```bash
 code bean-beacon-backend
 ```

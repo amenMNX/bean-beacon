@@ -18,6 +18,8 @@
       dockerfile: Dockerfile
     restart: unless-stopped
     init: true
+    volumes:
+      - backend-uploads:/app/uploads
     environment:
       MONGODB_URI: mongodb://mongo:27017/bean-beacon
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your production environment}
@@ -61,6 +63,7 @@
 
 volumes:
   mongo-prod-data:
+  backend-uploads:
 
 networks:
   app-network:

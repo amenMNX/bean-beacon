@@ -73,15 +73,19 @@ Complete guide to deploying Bean Beacon to production.
    server {
      listen 80;
      server_name yourdomain.com;
-     
+
      root /var/www/bean-beacon-app/dist;
      index index.html;
-     
+
      location / {
        try_files $uri /index.html;
      }
-     
+
      location /api/ {
+       proxy_pass http://backend-server:3000;
+     }
+
+     location ^~ /uploads/ {
        proxy_pass http://backend-server:3000;
      }
    }
@@ -116,7 +120,7 @@ Complete guide to deploying Bean Beacon to production.
    Under "Environment":
    ```
    MONGODB_URI = mongodb+srv://username:password@cluster.mongodb.net/bean-beacon
-   JWT_SECRET = (generate long random string)
+   JWT_SECRET = (generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
    JWT_EXPIRE = 7d
    PORT = 3000
    NODE_ENV = production
@@ -160,7 +164,7 @@ heroku create bean-beacon-api
 
 # Set environment variables
 heroku config:set MONGODB_URI=mongodb+srv://...
-heroku config:set JWT_SECRET=your_secret_key
+heroku config:set JWT_SECRET="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
 heroku config:set NODE_ENV=production
 
 # Deploy
@@ -172,10 +176,10 @@ git push heroku main
 1. **Using PM2 for process management:**
    ```bash
    npm install -g pm2
-   
+
    # Build
    npm run build
-   
+
    # Start with PM2
    pm2 start dist/index.js --name "bean-beacon-api"
    pm2 startup
@@ -187,7 +191,7 @@ git push heroku main
    server {
      listen 80;
      server_name api.yourdomain.com;
-     
+
      location / {
        proxy_pass http://localhost:3000;
        proxy_http_version 1.1;
@@ -234,7 +238,7 @@ git push heroku main
    ```bash
    # Ubuntu/Debian
    sudo apt-get install mongodb
-   
+
    # macOS
    brew install mongodb-community
    ```
@@ -250,6 +254,8 @@ git push heroku main
    ```
 
 ## Environment Configuration
+
+Production startup requires `JWT_SECRET`; generate a unique secret for each environment. Café photo uploads are stored under the backend's `uploads` directory, so deployments with ephemeral filesystems must mount persistent storage there. The production Docker Compose file provides a named volume for this directory.
 
 ### Production Environment Variables
 
