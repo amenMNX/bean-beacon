@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import "dotenv/config";
 import connectDB from "./config/database.js";
 import { config } from "./config/index.js";
@@ -24,6 +25,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(metricsMiddleware);
+
+// Serves café photos uploaded via POST /api/cafes/:id/photo.
+// Outside /api/ since it's static content, not an API route.
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Connect to database
 await connectDB();

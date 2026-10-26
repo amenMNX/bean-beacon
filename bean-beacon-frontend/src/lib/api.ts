@@ -48,7 +48,10 @@ class ApiError extends Error {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = authStorage.getToken();
   const headers = new Headers(options.headers);
-  headers.set("Content-Type", "application/json");
+  const isFormData = options.body instanceof FormData;
+  // Don't set Content-Type for FormData — the browser sets it itself, with the
+  // multipart boundary included, which a manual header would break.
+  if (!isFormData) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
@@ -59,6 +62,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
   return body.data as T;
 }
+
+// Café photos are served from the backend's own origin (e.g. /uploads/cafes/x.jpg),
+// not through the /api prefix. Resolves that relative to wherever VITE_API_URL points.
+export const resolveUploadUrl = (uploadPath?: string): string | undefined => {
+  if (!uploadPath) return undefined;
+  if (/^https?:\/\//.test(uploadPath)) return uploadPath;
+  const origin = API_URL.replace(/\/api\/?$/, "");
+  return `${origin}${uploadPath}`;
+};
 
 // --- Auth ---
 
@@ -106,6 +118,8 @@ export interface ApiCafe {
   amenities?: string[];
   location: { coordinates: [number, number] }; // [lng, lat]
   createdBy?: string;
+  photoPath?: string;
+  galleryPaths?: string[];
   status: CafeStatus;
   userRating: number;
   reviewCount: number;
@@ -130,6 +144,11 @@ export const cafesApi = {
   setStatus: (id: string, status: CafeStatus) =>
     request<ApiCafe>(`/cafes/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   remove: (id: string) => request<void>(`/cafes/${id}`, { method: "DELETE" }),
+  uploadPhoto: (cafeId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    return request<ApiCafe>(`/cafes/${cafeId}/photo`, { method: "POST", body: formData });
+  },
   recommend: (payload: {
     drink: string;
     atmosphere: string;

@@ -257,6 +257,38 @@ export const createCafe = async (req: Request, res: Response) => {
   }
 };
 
+// POST /api/cafes/:id/photo — owner or admin. Sets the café's cover photo.
+// The actual file handling (validation, saving to disk) happens in the
+// uploadCafePhoto multer middleware that runs before this controller.
+export const setCafePhoto = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "Not authenticated" });
+    }
+
+    const { id } = req.params;
+    const cafe = await Cafe.findById(id);
+    if (!cafe) {
+      return res.status(404).json({ success: false, error: "Cafe not found" });
+    }
+
+    if (cafe.createdBy !== req.user.userId && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "You can only update your own cafes" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: "No photo file provided" });
+    }
+
+    cafe.photoPath = `/uploads/cafes/${req.file.filename}`;
+    await cafe.save();
+
+    res.json({ success: true, data: cafe });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 // PATCH /api/cafes/:id/status — admin only. Approve or reject a listing.
 export const updateCafeStatus = async (req: Request, res: Response) => {
   try {

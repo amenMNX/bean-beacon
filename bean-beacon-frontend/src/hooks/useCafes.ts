@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { cafesApi, type ApiCafe } from "@/lib/api";
+import { cafesApi, resolveUploadUrl, type ApiCafe } from "@/lib/api";
 import { coffeeShops, type CoffeeShop } from "@/data/shops";
 
 const FALLBACK_PHOTO =
@@ -12,8 +12,8 @@ const toShop = (c: ApiCafe): CoffeeShop => ({
   phone: c.phone ?? undefined,
   hours: c.hoursText ?? undefined,
   menu: c.menuText ?? undefined,
-  gallery: [], // no photo storage in this deployment (MVP cut)
-  image: FALLBACK_PHOTO,
+  gallery: (c.galleryPaths ?? []).map((p) => resolveUploadUrl(p)!).filter(Boolean),
+  image: resolveUploadUrl(c.photoPath) ?? FALLBACK_PHOTO,
   createdBy: c.createdBy ?? undefined,
   status: c.status,
   category: c.category ?? "Café",
