@@ -4,6 +4,7 @@ import "dotenv/config";
 import connectDB from "./config/database.js";
 import { config } from "./config/index.js";
 import { errorHandler } from "./middleware/auth.js";
+import { metricsMiddleware, metricsHandler } from "./metrics.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import cafeRoutes from "./routes/cafeRoutes.js";
@@ -22,6 +23,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(metricsMiddleware);
 
 // Connect to database
 await connectDB();
@@ -37,6 +39,10 @@ app.use("/api/admin", adminRoutes);
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Bean Beacon API is running" });
 });
+
+// Prometheus scrape endpoint — kept outside /api since it's infra, not app API,
+// and so it isn't proxied through Nginx's /api/ rule in production.
+app.get("/metrics", metricsHandler);
 
 // Error handling middleware
 app.use(errorHandler);
