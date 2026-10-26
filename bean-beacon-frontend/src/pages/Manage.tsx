@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Camera, Trash2 } from "lucide-react";
 import { auth, cafesApi, onAuthChange, type ApiUser } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
   const { toast } = useToast();
   const [form, setForm] = useState(empty);
   const [tags, setTags] = useState(emptyTags);
+  const [photo, setPhoto] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   const toggle = (g: FilterGroup, v: string) =>
@@ -70,7 +71,7 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
 
     setBusy(true);
     try {
-      await cafesApi.create({
+      const cafe = await cafesApi.create({
         name: form.name.trim(),
         address: form.address.trim(),
         phone: form.phone.trim() || undefined,
@@ -81,9 +82,20 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
         atmosphere: tags.atmosphere,
         amenities: tags.amenities,
       });
+
+      if (photo) {
+        try {
+          await cafesApi.uploadPhoto(cafe._id, photo);
+        } catch (err) {
+          // The café itself was created fine — don't let a photo hiccup look like total failure.
+          toast({ title: "Café added, but the photo didn't upload", description: getErrorMessage(err), variant: "destructive" });
+        }
+      }
+
       toast({ title: "Café added", description: `${form.name} — pending approval before it shows to visitors.` });
       setForm(empty);
       setTags(emptyTags);
+      setPhoto(null);
       (e.target as HTMLFormElement).reset();
       onSaved();
     } catch (err) {
@@ -105,6 +117,11 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
         <p className="text-xs text-muted-foreground">
           The café location will be found automatically from its address.
         </p>
+        <div className="space-y-1">
+          <label htmlFor="cafe-photo" className="text-sm font-medium text-muted-foreground">Cover photo (optional)</label>
+          <Input id="cafe-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+          <p className="text-xs text-muted-foreground">JPEG, PNG, or WEBP — up to 5 MB.</p>
+        </div>
         <Textarea placeholder={"Opening hours, e.g.\nMon–Fri 7:00–18:00\nSat–Sun 8:00–16:00"} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} maxLength={500} />
         <Textarea placeholder={"Menu, e.g.\nEspresso — 2.50\nFlat white — 3.80\nCroissant — 2.20"} value={form.menu} onChange={(e) => setForm({ ...form, menu: e.target.value })} maxLength={3000} />
         <div className="flex flex-wrap items-center gap-2">
@@ -132,6 +149,8 @@ const Manage = () => {
   const qc = useQueryClient();
   const { data } = useCafes();
   const { toast } = useToast();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
 
   useEffect(() => {
     setUser(auth.currentUser());
@@ -151,6 +170,26 @@ const Manage = () => {
     }
   };
 
+  const pickPhotoFor = (id: string) => {
+    setEditingPhotoId(id);
+    photoInputRef.current?.click();
+  };
+
+  const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow picking the same file again later
+    if (!file || !editingPhotoId) return;
+    try {
+      await cafesApi.uploadPhoto(editingPhotoId, file);
+      toast({ title: "Photo updated" });
+      refresh();
+    } catch (err) {
+      toast({ title: "Couldn't upload photo", description: getErrorMessage(err), variant: "destructive" });
+    } finally {
+      setEditingPhotoId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
@@ -162,6 +201,7 @@ const Manage = () => {
           </div>
         </div>
         <h1 className="text-3xl font-bold text-foreground">Manage my cafés</h1>
+        <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onPhotoChosen} />
         {user && (() => {
           const pending = (data?.shops ?? []).filter((s) => s.status === "pending" && (isAdmin || s.createdBy === user.id));
           return pending.length > 0 && (
@@ -187,7 +227,17 @@ const Manage = () => {
                 ) : (
                   mine.map((s) => (
                     <Card key={s.id} className="flex items-center gap-4 p-3">
-                      <img src={s.image} alt={s.name} className="h-16 w-16 rounded-md object-cover" />
+                      <div className="relative shrink-0">
+                        <img src={s.image} alt={s.name} className="h-16 w-16 rounded-md object-cover" />
+                        <button
+                          type="button"
+                          aria-label={`Change photo for ${s.name}`}
+                          onClick={() => pickPhotoFor(s.id)}
+                          className="absolute -bottom-1 -right-1 rounded-full bg-background p-1 shadow"
+                        >
+                          <Camera className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                       <div className="flex-1">
                         <p className="font-medium">{s.name}</p>
                         <p className="text-sm text-muted-foreground">{s.address}</p>

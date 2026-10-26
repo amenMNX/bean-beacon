@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Coffee } from "lucide-react";
+import { Coffee, Heart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CafeMap } from "@/components/CafeMap";
 import { CoffeeShopCard } from "@/components/CoffeeShopCard";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { type FilterGroup } from "@/data/shops";
 import { useCafes } from "@/hooks/useCafes";
+import { useFavorites } from "@/hooks/useFavorites";
 import { Link } from "react-router-dom";
 import { CafeRecommender } from "@/components/CafeRecommender";
 
@@ -23,6 +24,7 @@ const Index = () => {
   const { toast } = useToast();
   const { data } = useCafes();
   const coffeeShops = data?.shops ?? [];
+  const { favoriteIds, toggleFavorite } = useFavorites();
 
   const toggleAttr = (group: FilterGroup, value: string) =>
     setAttrs((prev) => ({
@@ -122,11 +124,17 @@ const Index = () => {
           <TabsList>
             <TabsTrigger value="list">List</TabsTrigger>
             <TabsTrigger value="map">Map</TabsTrigger>
+            <TabsTrigger value="favorites">Favorites {favoriteIds.size > 0 && `(${favoriteIds.size})`}</TabsTrigger>
           </TabsList>
           <TabsContent value="list">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredShops.map((shop) => (
-                <CoffeeShopCard key={shop.id} {...shop} />
+                <CoffeeShopCard
+                  key={shop.id}
+                  {...shop}
+                  isFavorite={favoriteIds.has(shop.id)}
+                  onToggleFavorite={() => toggleFavorite(shop.id)}
+                />
               ))}
             </div>
             {filteredShops.length === 0 && (
@@ -140,6 +148,21 @@ const Index = () => {
           </TabsContent>
           <TabsContent value="map" forceMount className="data-[state=inactive]:hidden">
             <CafeMap shops={filteredShops} />
+          </TabsContent>
+          <TabsContent value="favorites">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {coffeeShops.filter((s) => favoriteIds.has(s.id)).map((shop) => (
+                <CoffeeShopCard key={shop.id} {...shop} isFavorite onToggleFavorite={() => toggleFavorite(shop.id)} />
+              ))}
+            </div>
+            {favoriteIds.size === 0 && (
+              <div className="text-center py-16 space-y-4">
+                <Heart className="w-16 h-16 mx-auto text-muted-foreground" />
+                <p className="text-lg text-muted-foreground">
+                  No favorites yet — tap the heart on any café to save it here.
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </section>
