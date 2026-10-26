@@ -35,7 +35,9 @@ type Listener = (user: ApiUser | null) => void;
 const listeners = new Set<Listener>();
 export const onAuthChange = (fn: Listener) => {
   listeners.add(fn);
-  return () => listeners.delete(fn);
+  return () => {
+    listeners.delete(fn);
+  };
 };
 const notifyAuthChange = (user: ApiUser | null) => listeners.forEach((fn) => fn(user));
 

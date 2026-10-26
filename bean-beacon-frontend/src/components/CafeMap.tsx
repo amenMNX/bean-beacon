@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CoffeeShop } from "@/data/shops";
 import { mapsLink } from "@/components/CoffeeShopCard";
 
@@ -31,7 +31,7 @@ export const CafeMap = ({ shops }: { shops: CoffeeShop[] }) => {
   const map = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
   const [ready, setReady] = useState(false);
-  const pinned = shops.filter((s) => s.lat != null && s.lng != null);
+  const pinned = useMemo(() => shops.filter((s) => s.lat != null && s.lng != null), [shops]);
 
   useEffect(() => {
     loadMaps().then(() => {
@@ -61,7 +61,7 @@ export const CafeMap = ({ shops }: { shops: CoffeeShop[] }) => {
     });
     if (pinned.length === 1) { map.current.setCenter(bounds.getCenter()); map.current.setZoom(15); }
     else if (pinned.length > 1) map.current.fitBounds(bounds);
-  }, [ready, shops]);
+  }, [ready, pinned]);
 
   return (
     <div className="space-y-2">
