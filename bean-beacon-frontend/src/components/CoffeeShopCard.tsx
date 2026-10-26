@@ -1,4 +1,4 @@
-import { MapPin, Star, Clock, Phone, ExternalLink } from "lucide-react";
+import { MapPin, Star, Clock, Phone, ExternalLink, Heart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,12 @@ import { Link } from "react-router-dom";
 export const mapsLink = (name: string, address: string) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${address}`)}`;
 
-export const CoffeeShopCard = ({ id, isSample, name, image, rating, reviewCount, distance, category, isOpen, address, phone, hours }: CoffeeShop) => {
+interface CoffeeShopCardProps extends CoffeeShop {
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+}
+
+export const CoffeeShopCard = ({ id, isSample, name, image, rating, reviewCount, distance, category, isOpen, address, phone, hours, isFavorite, onToggleFavorite }: CoffeeShopCardProps) => {
   const query = encodeURIComponent(`${name}, ${address}`);
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-card border-border">
@@ -19,6 +24,19 @@ export const CoffeeShopCard = ({ id, isSample, name, image, rating, reviewCount,
           <Badge className="absolute top-3 right-3" variant={isOpen ? "default" : "destructive"}>
             {isOpen ? "Open" : "Closed"}
           </Badge>
+        )}
+        {!isSample && onToggleFavorite && (
+          <button
+            type="button"
+            aria-label={isFavorite ? `Remove ${name} from favorites` : `Save ${name} to favorites`}
+            onClick={(e) => {
+              e.preventDefault();
+              onToggleFavorite();
+            }}
+            className="absolute top-3 left-3 rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors hover:bg-background"
+          >
+            <Heart className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : "text-foreground"}`} />
+          </button>
         )}
       </div>
 

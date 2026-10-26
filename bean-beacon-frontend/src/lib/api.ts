@@ -175,6 +175,14 @@ export const reviewsApi = {
     request<void>(`/cafes/${cafeId}/ratings/${ratingId}`, { method: "DELETE" }),
 };
 
+// --- Favorites ---
+
+export const favoritesApi = {
+  list: () => request<ApiCafe[]>("/favorites"),
+  add: (cafeId: string) => request<void>(`/favorites/${cafeId}`, { method: "POST" }),
+  remove: (cafeId: string) => request<void>(`/favorites/${cafeId}`, { method: "DELETE" }),
+};
+
 // --- Admin (owner dashboard) ---
 
 export const adminApi = {
