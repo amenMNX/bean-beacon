@@ -33,7 +33,7 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "token": "YOUR_JWT_TOKEN_HERE",
     "user": {
       "id": "507f1f77bcf86cd799439011",
       "email": "user@example.com",
@@ -68,7 +68,7 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "token": "YOUR_JWT_TOKEN_HERE",
     "user": {
       "id": "507f1f77bcf86cd799439011",
       "email": "user@example.com",
@@ -91,7 +91,7 @@ Get authenticated user information.
 
 ```http
 GET /auth/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ```
 
 **Response (200 OK):**
@@ -125,7 +125,7 @@ Authorization: Bearer <token> (optional)
 
 **Query Parameters:**
 - `latitude` (required, number) - User's latitude
-- `longitude` (required, number) - User's longitude  
+- `longitude` (required, number) - User's longitude
 - `radius` (optional, number, default: 5) - Search radius in kilometers
 
 **Response (200 OK):**
@@ -307,7 +307,7 @@ Get all favorite cafés for authenticated user.
 
 ```http
 GET /favorites
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ```
 
 **Response (200 OK):**
@@ -340,7 +340,7 @@ Add a café to user's favorites.
 
 ```http
 POST /favorites/{cafeId}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ```
 
 **Response (201 Created):**
@@ -369,7 +369,7 @@ Remove a café from user's favorites.
 
 ```http
 DELETE /favorites/{cafeId}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ```
 
 **Response (200 OK):**
@@ -392,7 +392,7 @@ Check if a café is in user's favorites.
 
 ```http
 GET /favorites/{cafeId}/check
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs... (optional)
+Authorization: Bearer YOUR_JWT_TOKEN_HERE (optional)
 ```
 
 **Response (200 OK):**
@@ -453,7 +453,7 @@ Create a new rating and review for a café.
 
 ```http
 POST /cafes/{cafeId}/ratings
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 Content-Type: application/json
 
 {
@@ -495,7 +495,7 @@ Update an existing rating/review.
 
 ```http
 PUT /cafes/{cafeId}/ratings/{ratingId}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 Content-Type: application/json
 
 {
@@ -537,7 +537,7 @@ Delete a rating/review.
 
 ```http
 DELETE /cafes/{cafeId}/ratings/{ratingId}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ```
 
 **Response (200 OK):**
@@ -586,7 +586,7 @@ All endpoints marked with `Authorization: Bearer <token>` require a valid JWT to
 
 **How to send token:**
 ```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ```
 
 Get a token by:
@@ -622,7 +622,7 @@ curl -X POST http://localhost:3000/api/auth/register \
   }'
 
 # Response includes token - save it!
-TOKEN="eyJhbGciOiJIUzI1NiIs..."
+TOKEN="YOUR_JWT_TOKEN_HERE"
 
 # 2. Get nearby cafés (no auth needed)
 curl "http://localhost:3000/api/cafes?latitude=40.7128&longitude=-74.0060&radius=5"
