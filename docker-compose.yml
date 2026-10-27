@@ -1,3 +1,4 @@
+
 services:
   mongo:
     image: mongo:7
@@ -80,6 +81,9 @@ services:
     depends_on:
       - cadvisor
       - node-exporter
+    networks:
+      - default
+      - app-network
 
   grafana:
     image: grafana/grafana:latest
@@ -119,3 +123,8 @@ volumes:
   frontend-node-modules:
   prometheus_data:
   grafana_data:
+
+networks:
+  app-network:
+    external: true
+    name: bean-beacon_app-network
