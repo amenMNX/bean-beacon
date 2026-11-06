@@ -15,7 +15,7 @@ export const SearchBar = ({ onSearch, onLocationClick }: SearchBarProps) => {
         <Input
           type="text"
           placeholder="Search coffee shops..."
-          className="pl-10 h-12 border-border bg-card"
+          className="pl-10 h-12 border-border bg-card text-foreground"
           onChange={(e) => onSearch(e.target.value)}
         />
       </div>
