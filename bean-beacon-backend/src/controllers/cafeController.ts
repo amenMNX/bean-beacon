@@ -3,6 +3,27 @@ import { Cafe } from "../models/Cafe.js";
 import { overpassService } from "../services/overpassService.js";
 import { geocodingService } from "../services/geocodingService.js";
 
+
+const haversineKm = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) => {
+  const earthRadiusKm = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+
 export const getCafesByLocation = async (req: Request, res: Response) => {
   try {
     const { latitude, longitude, radius = 5, type } = req.query;
@@ -159,18 +180,87 @@ export const listAllCafes = async (req: Request, res: Response) => {
     let filter: any = { status: "approved" };
 
     if (req.user?.role === "admin") {
-      filter = {}; // admins see all statuses
+      filter = {};
     } else if (req.user) {
-      filter = { $or: [{ status: "approved" }, { createdBy: req.user.userId }] };
+      filter = {
+        $or: [
+          { status: "approved" },
+          { createdBy: req.user.userId },
+        ],
+      };
     }
 
-    const cafes = await Cafe.find(filter).sort({ createdAt: -1 }).limit(200);
+    const rawLat = req.query.lat;
+    const rawLng = req.query.lng;
+
+    const hasLocation = rawLat !== undefined || rawLng !== undefined;
+
+    if (hasLocation && (rawLat === undefined || rawLng === undefined)) {
+      return res.status(400).json({
+        success: false,
+        error: "Both lat and lng are required",
+      });
+    }
+
+    const lat = rawLat !== undefined ? Number(rawLat) : undefined;
+    const lng = rawLng !== undefined ? Number(rawLng) : undefined;
+
+    if (
+      hasLocation &&
+      (lat === undefined ||
+        lng === undefined ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng) ||
+        Math.abs(lat) > 90 ||
+        Math.abs(lng) > 180)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid latitude or longitude",
+      });
+    }
+
+    let cafes;
+
+    if (hasLocation) {
+      filter.location = {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+        },
+      };
+
+      cafes = await Cafe.find(filter).limit(200);
+
+      const data = cafes.map((cafe) => {
+        const [cafeLng, cafeLat] = cafe.location.coordinates;
+
+        return {
+          ...cafe.toObject(),
+          distanceKm: Math.round(
+            haversineKm(lat!, lng!, cafeLat, cafeLng) * 10
+          ) / 10,
+        };
+      });
+
+      return res.json({ success: true, data });
+    }
+
+    cafes = await Cafe.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(200);
+
     res.json({ success: true, data: cafes });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Error listing cafes:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 };
-
 // POST /api/cafes — create a user-submitted cafe. Requires auth.
 // Always starts as "pending" — only an admin can approve it (status from the
 // request body is ignored on purpose, so a regular user can't self-approve).
