@@ -1,0 +1,8 @@
+title = "Bean Beacon Gitleaks configuration"
+
+[allowlist]
+description = "Allow only the redacted token examples used in API documentation"
+regexes = [
+  '''(?i)"token"\s*:\s*"REDACTED"''',
+  '''(?i)TOKEN\s*=\s*"REDACTED"''',
+]

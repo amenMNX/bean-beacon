@@ -94,7 +94,7 @@ frontend:audit:
 gitleaks:
   stage: security
   script:
-    - docker run --rm -v "${PWD}:/path" zricethezav/gitleaks:latest detect --source="/path" --verbose --redact
+    - docker run --rm -v "${PWD}:/path" zricethezav/gitleaks:latest detect --source="/path" --config="/path/.gitleaks.toml" --verbose --redact
   allow_failure: false   # a real secret leak should block the pipeline
 
 # --- BUILD: production Docker images ---
