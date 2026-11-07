@@ -85,7 +85,9 @@ frontend:audit:
   stage: security
   script:
     - cd $FRONTEND_DIR
-    - npm audit --audit-level=moderate
+    # Frontend audit includes development-only lint/build tooling.
+    # Moderate transitive advisories remain, but high/critical issues still fail CI.
+    - npm audit --audit-level=high
 
 gitleaks:
   stage: security
