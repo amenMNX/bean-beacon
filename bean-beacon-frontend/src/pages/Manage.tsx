@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Camera, Trash2 } from "lucide-react";
+import { ArrowLeft, Camera, Pencil, Save, Trash2 } from "lucide-react";
 import { auth, cafesApi, onAuthChange, type ApiUser } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { filterGroups, type FilterGroup } from "@/data/shops";
+import { filterGroups, type CoffeeShop, type FilterGroup } from "@/data/shops";
 import { useCafes } from "@/hooks/useCafes";
 import { getErrorMessage } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ const AuthForm = () => {
   );
 };
 
-const empty = { name: "", address: "", phone: "", hours: "", menu: "", category: "Café" };
+const empty = { name: "", address: "", mapUrl: "", phone: "", hours: "", menu: "", category: "Café" };
 const emptyTags: Record<FilterGroup, string[]> = { coffeeTypes: [], atmosphere: [], amenities: [] };
 
 const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
@@ -73,7 +73,8 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
     try {
       const cafe = await cafesApi.create({
         name: form.name.trim(),
-        address: form.address.trim(),
+        address: form.address.trim() || undefined,
+        mapUrl: form.mapUrl.trim() || undefined,
         phone: form.phone.trim() || undefined,
         hoursText: form.hours.trim() || undefined,
         menuText: form.menu.trim() || undefined,
@@ -113,9 +114,10 @@ const CafeForm = ({ onSaved }: { onSaved: () => void }) => {
           <Input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={120} />
           <Input placeholder="Phone (optional)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} maxLength={40} />
         </div>
-        <Input placeholder="Full address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required maxLength={300} />
+        <Input placeholder="Full address (optional if using Maps URL)" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} maxLength={300} />
+        <Input type="url" placeholder="Google Maps URL (recommended)" value={form.mapUrl} onChange={(e) => setForm({ ...form, mapUrl: e.target.value })} maxLength={1000} />
         <p className="text-xs text-muted-foreground">
-          The café location will be found automatically from its address.
+          Paste the full Google Maps link. It will locate the café automatically; the address is used as display text.
         </p>
         <div className="space-y-1">
           <label htmlFor="cafe-photo" className="text-sm font-medium text-muted-foreground">Cover photo (optional)</label>
@@ -151,6 +153,9 @@ const Manage = () => {
   const { toast } = useToast();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
+  const [editingCafeId, setEditingCafeId] = useState<string | null>(null);
+  const [editCafeForm, setEditCafeForm] = useState({ name: "", address: "", phone: "", lat: "", lng: "" });
+  const [cafeSearch, setCafeSearch] = useState("");
 
   useEffect(() => {
     setUser(auth.currentUser());
@@ -190,13 +195,42 @@ const Manage = () => {
     }
   };
 
+  const startCafeEditing = (cafe: CoffeeShop) => {
+    setEditingCafeId(cafe.id);
+    setEditCafeForm({
+      name: cafe.name,
+      address: cafe.address,
+      phone: cafe.phone ?? "",
+      lat: String(cafe.lat ?? ""),
+      lng: String(cafe.lng ?? ""),
+    });
+  };
+
+  const saveCafeEditing = async () => {
+    if (!editingCafeId) return;
+    try {
+      await cafesApi.update(editingCafeId, {
+        name: editCafeForm.name,
+        address: editCafeForm.address,
+        phone: editCafeForm.phone || undefined,
+        lat: Number(editCafeForm.lat),
+        lng: Number(editCafeForm.lng),
+      });
+      toast({ title: "Café updated" });
+      setEditingCafeId(null);
+      refresh();
+    } catch (err) {
+      toast({ title: "Couldn't update café", description: getErrorMessage(err), variant: "destructive" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
         <div className="flex items-center justify-between">
           <Button asChild variant="ghost" size="sm"><Link to="/"><ArrowLeft className="mr-1 h-4 w-4" />Back to cafés</Link></Button>
           <div className="flex gap-2">
-            {isAdmin && <Button asChild size="sm"><Link to="/dashboard">Owner dashboard</Link></Button>}
+            {isAdmin && <Button asChild size="sm"><Link to="/admin">Admin space</Link></Button>}
             {user && <Button variant="outline" size="sm" onClick={() => auth.signOut()}>Sign out</Button>}
           </div>
         </div>
@@ -220,13 +254,17 @@ const Manage = () => {
             <CafeForm onSaved={refresh} />
             <div className="space-y-3">
               <h2 className="text-xl font-semibold">Your cafés</h2>
+              <Input value={cafeSearch} onChange={(e) => setCafeSearch(e.target.value)} placeholder="Search your cafés by name or address..." />
               {(() => {
-                const mine = (data?.shops ?? []).filter((s) => isAdmin || s.createdBy === user.id);
+                const mine = (data?.shops ?? [])
+                  .filter((s) => isAdmin || s.createdBy === user.id)
+                  .filter((s) => `${s.name} ${s.address}`.toLowerCase().includes(cafeSearch.toLowerCase().trim()));
                 return data?.isSample || !mine.length ? (
                   <p className="text-muted-foreground">No cafés yet — add your first one above and it will appear in the finder.</p>
                 ) : (
                   mine.map((s) => (
-                    <Card key={s.id} className="flex items-center gap-4 p-3">
+                    <div key={s.id} className="space-y-2">
+                    <Card className="flex items-center gap-4 p-3">
                       <div className="relative shrink-0">
                         <img src={s.image} alt={s.name} className="h-16 w-16 rounded-md object-cover" />
                         <button
@@ -245,10 +283,30 @@ const Manage = () => {
                       <Badge variant={s.status === "approved" ? "default" : s.status === "rejected" ? "destructive" : "secondary"}>
                         {s.status === "approved" ? "Live" : s.status === "rejected" ? "Rejected" : "Pending approval"}
                       </Badge>
+                      <Button type="button" variant="outline" size="sm" onClick={() => startCafeEditing(s)}><Pencil className="mr-1 h-4 w-4" />Edit</Button>
                       <Button variant="ghost" size="icon" aria-label={`Delete ${s.name}`} onClick={() => remove(s.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </Card>
+                    {editingCafeId === s.id && (
+                      <Card className="space-y-3 border-primary p-4">
+                        <h3 className="font-semibold">Edit {s.name}</h3>
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <Input value={editCafeForm.name} onChange={(e) => setEditCafeForm({ ...editCafeForm, name: e.target.value })} placeholder="Café name" />
+                          <Input value={editCafeForm.phone} onChange={(e) => setEditCafeForm({ ...editCafeForm, phone: e.target.value })} placeholder="Phone" />
+                        </div>
+                        <Input value={editCafeForm.address} onChange={(e) => setEditCafeForm({ ...editCafeForm, address: e.target.value })} placeholder="Address" />
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <Input value={editCafeForm.lat} onChange={(e) => setEditCafeForm({ ...editCafeForm, lat: e.target.value })} placeholder="Latitude" />
+                          <Input value={editCafeForm.lng} onChange={(e) => setEditCafeForm({ ...editCafeForm, lng: e.target.value })} placeholder="Longitude" />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button type="button" size="sm" onClick={saveCafeEditing}><Save className="mr-1 h-4 w-4" />Save changes</Button>
+                          <Button type="button" size="sm" variant="outline" onClick={() => setEditingCafeId(null)}>Cancel</Button>
+                        </div>
+                      </Card>
+                    )}
+                    </div>
                   ))
                 );
               })()}

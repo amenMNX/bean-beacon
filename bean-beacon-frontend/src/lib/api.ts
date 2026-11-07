@@ -12,6 +12,10 @@ export interface ApiUser {
   role: "user" | "admin";
 }
 
+export interface AdminUser extends ApiUser {
+  createdAt: string;
+}
+
 // --- token/session storage ---
 
 export const authStorage = {
@@ -126,13 +130,19 @@ export interface ApiCafe {
   userRating: number;
   reviewCount: number;
   createdAt: string;
+  distanceKm?: number;
 }
 
 export const cafesApi = {
+  nearby: (latitude: number, longitude: number, radius = 10) =>
+    request<ApiCafe[]>(
+      `/cafes?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&radius=${radius}`
+    ),
   listAll: () => request<ApiCafe[]>("/cafes/all"),
   create: (payload: {
     name: string;
-    address: string;
+    address?: string;
+    mapUrl?: string;
     phone?: string;
     hoursText?: string;
     menuText?: string;
@@ -145,6 +155,16 @@ export const cafesApi = {
   }) => request<ApiCafe>("/cafes", { method: "POST", body: JSON.stringify(payload) }),
   setStatus: (id: string, status: CafeStatus) =>
     request<ApiCafe>(`/cafes/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  update: (id: string, payload: {
+    name: string;
+    address: string;
+    phone?: string;
+    hoursText?: string;
+    menuText?: string;
+    category?: string;
+    lat?: number;
+    lng?: number;
+  }) => request<ApiCafe>(`/cafes/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   remove: (id: string) => request<void>(`/cafes/${id}`, { method: "DELETE" }),
   uploadPhoto: (cafeId: string, file: File) => {
     const formData = new FormData();
@@ -208,4 +228,16 @@ export const favoritesApi = {
 
 export const adminApi = {
   allReviews: () => request<ApiRating[]>("/admin/reviews"),
+  allUsers: () => request<AdminUser[]>("/admin/users"),
+  createUser: (payload: { name: string; email: string; password: string; role: "user" | "admin" }) =>
+    request<AdminUser>("/admin/users", { method: "POST", body: JSON.stringify(payload) }),
+  updateUser: (id: string, payload: { name: string; email: string; role: "user" | "admin"; password?: string }) =>
+    request<AdminUser>(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  updateCafe: (id: string, payload: {
+    name: string;
+    address: string;
+    phone?: string;
+    lat?: number;
+    lng?: number;
+  }) => request<ApiCafe>(`/admin/cafes/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
 };

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import axios from "axios";
 import { Cafe } from "../models/Cafe.js";
 import { overpassService } from "../services/overpassService.js";
 import { geocodingService } from "../services/geocodingService.js";
@@ -23,10 +24,122 @@ const haversineKm = (
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
+// Bean Beacon currently operates in Tunisia only.
+const TUNISIA_BOUNDS = {
+  south: 30.2,
+  north: 37.6,
+  west: 7.5,
+  east: 11.6,
+};
+
+const GENERIC_CAFE_NAMES = new Set([
+  "cafe",
+  "café",
+  "coffee",
+  "coffee shop",
+  "coffeehouse",
+  "coffee house",
+  "unnamed cafe",
+  "unnamed café",
+  "unnamed coffee shop",
+]);
+
+const hasUsableCafeName = (value: unknown) => {
+  if (typeof value !== "string") return false;
+  const name = value.trim();
+  const normalized = name.toLocaleLowerCase().replace(/\s+/g, " ");
+
+  return (
+    name.length >= 3 &&
+    /\p{L}/u.test(name) &&
+    !GENERIC_CAFE_NAMES.has(normalized)
+  );
+};
+
+const isInTunisia = (lat: number, lon: number) =>
+  lat >= TUNISIA_BOUNDS.south &&
+  lat <= TUNISIA_BOUNDS.north &&
+  lon >= TUNISIA_BOUNDS.west &&
+  lon <= TUNISIA_BOUNDS.east;
+
+const isUsableTunisiaCafe = (cafe: { name?: unknown; location?: { coordinates?: number[] } }) => {
+  const [lon, lat] = cafe.location?.coordinates ?? [];
+  return (
+    hasUsableCafeName(cafe.name) &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lon) &&
+    isInTunisia(lat, lon)
+  );
+};
+
+const coordinatesFromGoogleMapsUrl = (value: unknown) => {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+
+  const url = value.trim();
+  const patterns = [
+    /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/,
+    /!3d(-?\d+(?:\.\d+)?).*?!4d(-?\d+(?:\.\d+)?)/,
+    /[?&](?:q|query)=(-?\d+(?:\.\d+)?)[,%20]+(-?\d+(?:\.\d+)?)/,
+  ];
+
+  for (const pattern of patterns) {
+    const result = url.match(pattern);
+    if (result) {
+      const lat = Number(result[1]);
+      const lng = Number(result[2]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    }
+  }
+
+  return undefined;
+};
+
+const coordinatesFromGoogleMapsLink = async (value: unknown) => {
+  const directCoordinates = coordinatesFromGoogleMapsUrl(value);
+  if (directCoordinates || typeof value !== "string") return directCoordinates;
+
+  const input = value.trim();
+  if (!input) return undefined;
+
+  try {
+    const parsedUrl = new URL(input);
+    const isGoogleMapsHost =
+      parsedUrl.hostname === "maps.app.goo.gl" ||
+      parsedUrl.hostname === "goo.gl" ||
+      parsedUrl.hostname.endsWith("google.com");
+
+    if (!isGoogleMapsHost) return undefined;
+
+    const response = await axios.get(input, {
+      maxRedirects: 5,
+      timeout: 10000,
+      headers: { "User-Agent": "BeanBeacon/1.0 (coffee discovery application)" },
+    });
+
+    const finalUrl =
+      response.request?.res?.responseUrl ||
+      response.request?.responseURL ||
+      response.config.url;
+
+    return coordinatesFromGoogleMapsUrl(finalUrl);
+  } catch (error) {
+    console.warn("Could not resolve Google Maps URL", error);
+    return undefined;
+  }
+};
+
+const verifyCoffeePlace = async (lat: number, lng: number) => {
+  const nearbyPlaces = await overpassService.fetchCafes(lat, lng, 0.15);
+
+  return nearbyPlaces.some(
+    (place) => overpassService.getDistance(lat, lng, place.lat, place.lon) <= 0.15
+  );
+};
+
 
 export const getCafesByLocation = async (req: Request, res: Response) => {
   try {
-    const { latitude, longitude, radius = 5, type } = req.query;
+    const { latitude, longitude, radius = 20, type } = req.query;
 
     if (!latitude || !longitude) {
       return res
@@ -36,7 +149,10 @@ export const getCafesByLocation = async (req: Request, res: Response) => {
 
     const lat = parseFloat(latitude as string);
     const lon = parseFloat(longitude as string);
-    const radiusNum = parseFloat(radius as string) || 5;
+    const requestedRadius = parseFloat(radius as string);
+    const radiusNum = Number.isFinite(requestedRadius)
+      ? Math.min(Math.max(requestedRadius, 1), 20)
+      : 20;
 
     // First, try to get from database with nearby cafes
     let cafes = await Cafe.find({
@@ -49,7 +165,8 @@ export const getCafesByLocation = async (req: Request, res: Response) => {
           $maxDistance: radiusNum * 1000, // Convert km to meters
         },
       },
-    }).limit(50);
+    }).limit(100);
+    cafes = cafes.filter(isUsableTunisiaCafe);
 
     // If not enough results, fetch from Overpass API
     if (cafes.length < 10) {
@@ -57,12 +174,19 @@ export const getCafesByLocation = async (req: Request, res: Response) => {
 
       // Save new cafes to database
       for (const overpassCafe of overpassCafes) {
+        if (
+          !hasUsableCafeName(overpassCafe.tags.name) ||
+          !isInTunisia(overpassCafe.lat, overpassCafe.lon)
+        ) {
+          continue;
+        }
+
         const existingCafe = await Cafe.findOne({ osmId: overpassCafe.id });
         if (!existingCafe) {
           try {
             await Cafe.create({
               osmId: overpassCafe.id.toString(),
-              name: overpassCafe.tags.name || "Unnamed Cafe",
+              name: overpassCafe.tags.name.trim(),
               location: {
                 type: "Point",
                 coordinates: [overpassCafe.lon, overpassCafe.lat],
@@ -92,12 +216,28 @@ export const getCafesByLocation = async (req: Request, res: Response) => {
             $maxDistance: radiusNum * 1000,
           },
         },
-      }).limit(50);
+      }).limit(100);
+      cafes = cafes.filter(isUsableTunisiaCafe);
     }
+
+    const data = cafes
+      .map((cafe) => {
+        const [cafeLon, cafeLat] = cafe.location.coordinates;
+        return {
+          cafe: cafe.toObject(),
+          exactDistanceKm: haversineKm(lat, lon, cafeLat, cafeLon),
+        };
+      })
+      .sort((a, b) => a.exactDistanceKm - b.exactDistanceKm)
+      .map(({ cafe, exactDistanceKm }) => ({
+        ...cafe,
+        // Keep extra precision for stable ordering; the UI displays one decimal.
+        distanceKm: Math.round(exactDistanceKm * 1000) / 1000,
+      }));
 
     res.json({
       success: true,
-      data: cafes,
+      data,
     });
   } catch (error: any) {
     console.error("Error fetching cafes:", error);
@@ -232,7 +372,7 @@ export const listAllCafes = async (req: Request, res: Response) => {
         },
       };
 
-      cafes = await Cafe.find(filter).limit(200);
+      cafes = (await Cafe.find(filter).limit(200)).filter(isUsableTunisiaCafe);
 
       const data = cafes.map((cafe) => {
         const [cafeLng, cafeLat] = cafe.location.coordinates;
@@ -248,9 +388,9 @@ export const listAllCafes = async (req: Request, res: Response) => {
       return res.json({ success: true, data });
     }
 
-    cafes = await Cafe.find(filter)
+    cafes = (await Cafe.find(filter)
       .sort({ createdAt: -1 })
-      .limit(200);
+      .limit(200)).filter(isUsableTunisiaCafe);
 
     res.json({ success: true, data: cafes });
   } catch (error: any) {
@@ -273,6 +413,7 @@ export const createCafe = async (req: Request, res: Response) => {
     const {
       name,
       address,
+      mapUrl,
       phone,
       hoursText,
       menuText,
@@ -284,14 +425,18 @@ export const createCafe = async (req: Request, res: Response) => {
       amenities,
     } = req.body;
 
-    if (!name || !address) {
-      return res.status(400).json({ success: false, error: "Name and address are required" });
+    if (!name || (!address && !mapUrl)) {
+      return res.status(400).json({ success: false, error: "Name and address or Google Maps URL are required" });
     }
 
     let coordinates: { lat: number; lng: number };
-    if (lat === undefined && lng === undefined) {
+    const mapCoordinates = await coordinatesFromGoogleMapsLink(mapUrl);
+
+    if (mapCoordinates) {
+      coordinates = mapCoordinates;
+    } else if (lat === undefined && lng === undefined) {
       try {
-        const geocoded = await geocodingService.geocodeAddress(String(address));
+        const geocoded = await geocodingService.geocodeAddress(String(address ?? mapUrl));
         if (!geocoded) {
           return res.status(422).json({
             success: false,
@@ -326,9 +471,34 @@ export const createCafe = async (req: Request, res: Response) => {
       coordinates = { lat: latNum, lng: lngNum };
     }
 
+    if (!isInTunisia(coordinates.lat, coordinates.lng)) {
+      return res.status(422).json({
+        success: false,
+        error: "The Google Maps location must be in Tunisia.",
+      });
+    }
+
+    let isCoffeePlace = false;
+    try {
+      isCoffeePlace = await verifyCoffeePlace(coordinates.lat, coordinates.lng);
+    } catch (error) {
+      console.error("Coffee place verification failed:", error);
+      return res.status(502).json({
+        success: false,
+        error: "Coffee place verification is temporarily unavailable. Please try again.",
+      });
+    }
+
+    if (!isCoffeePlace) {
+      return res.status(422).json({
+        success: false,
+        error: "This location could not be verified as a coffee shop. Please use a café location listed on OpenStreetMap.",
+      });
+    }
+
     const cafe = await Cafe.create({
       name: String(name).trim(),
-      address: String(address).trim(),
+      address: String(address || mapUrl).trim(),
       phone: phone ? String(phone).trim() : undefined,
       hoursText: hoursText ? String(hoursText).trim() : undefined,
       menuText: menuText ? String(menuText).trim() : undefined,
@@ -394,6 +564,51 @@ export const updateCafeStatus = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: "Cafe not found" });
     }
 
+    res.json({ success: true, data: cafe });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// PATCH /api/cafes/:id — admin editing for imported and manager cafés.
+export const updateCafeDetails = async (req: Request, res: Response) => {
+  try {
+    const cafe = await Cafe.findById(req.params.id);
+    if (!cafe) {
+      return res.status(404).json({ success: false, error: "Cafe not found" });
+    }
+
+    if (!req.user || (req.user.role !== "admin" && cafe.createdBy !== req.user.userId)) {
+      return res.status(403).json({ success: false, error: "You can only edit your own cafés" });
+    }
+
+    const { name, address, phone, hoursText, menuText, category, lat, lng } = req.body;
+
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ success: false, error: "Cafe name is required" });
+      }
+      cafe.name = name.trim();
+    }
+    if (address !== undefined) cafe.address = String(address).trim();
+    if (phone !== undefined) cafe.phone = phone ? String(phone).trim() : undefined;
+    if (hoursText !== undefined) cafe.hoursText = hoursText ? String(hoursText).trim() : undefined;
+    if (menuText !== undefined) cafe.menuText = menuText ? String(menuText).trim() : undefined;
+    if (category !== undefined) cafe.category = category;
+
+    if (lat !== undefined || lng !== undefined) {
+      const nextLat = Number(lat ?? cafe.location.coordinates[1]);
+      const nextLng = Number(lng ?? cafe.location.coordinates[0]);
+      if (!Number.isFinite(nextLat) || !Number.isFinite(nextLng) || !isInTunisia(nextLat, nextLng)) {
+        return res.status(422).json({
+          success: false,
+          error: "Coordinates must be valid and inside Tunisia",
+        });
+      }
+      cafe.location = { type: "Point", coordinates: [nextLng, nextLat] };
+    }
+
+    await cafe.save();
     res.json({ success: true, data: cafe });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });

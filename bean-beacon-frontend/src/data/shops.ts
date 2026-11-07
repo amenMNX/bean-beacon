@@ -8,6 +8,7 @@ export interface CoffeeShop {
   reviewCount?: number;
   status?: string;
   distance?: string;
+  distanceKm?: number;
   category: string;
   isOpen?: boolean;
   address: string;

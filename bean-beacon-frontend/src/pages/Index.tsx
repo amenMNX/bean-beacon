@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Coffee, Heart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CafeMap } from "@/components/CafeMap";
@@ -21,8 +21,9 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [attrs, setAttrs] = useState(emptyFilters);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
-  const { data } = useCafes();
+  const { data } = useCafes(coords);
   const coffeeShops = data?.shops ?? [];
   const { favoriteIds, toggleFavorite } = useFavorites();
 
@@ -41,32 +42,46 @@ const Index = () => {
     return matchesCategory && matchesSearch && matchesAttrs;
   });
 
-  const handleLocationClick = () => {
+  const requestLocation = useCallback((showToast: boolean) => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          toast({
-            title: "Location found",
-            description: "Finding nearby coffee shops...",
+          setCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
           });
-          // Will integrate with Google Places API
+
+          if (showToast) {
+            toast({
+              title: "Location found",
+              description: "Finding nearby coffee shops...",
+            });
+          }
         },
-        (error) => {
-          toast({
-            title: "Location error",
-            description: "Please enable location services to find nearby shops",
-            variant: "destructive",
-          });
+        () => {
+          if (showToast) {
+            toast({
+              title: "Location error",
+              description: "Please enable location services to find nearby shops",
+              variant: "destructive",
+            });
+          }
         }
       );
-    } else {
+    } else if (showToast) {
       toast({
         title: "Not supported",
         description: "Location services not available in your browser",
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    requestLocation(false);
+  }, [requestLocation]);
+
+  const handleLocationClick = () => requestLocation(true);
 
   return (
     <div className="min-h-screen bg-background">
