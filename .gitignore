@@ -16,5 +16,6 @@ pnpm-debug.log*
 *.swo
 *~
 coverage/
+bean-beacon-backend/uploads
 .env.production
 .cache/

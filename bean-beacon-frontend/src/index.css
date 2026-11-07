@@ -131,3 +131,37 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+.bean-beacon-coffee-marker,
+.bean-beacon-user-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+}
+
+.bean-beacon-coffee-marker span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  background: #92400e;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bean-beacon-user-marker span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 9999px;
+  background: #2563eb;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 45%);
+  color: transparent;
+}

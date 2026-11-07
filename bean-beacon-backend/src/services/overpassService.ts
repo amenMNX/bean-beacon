@@ -5,9 +5,15 @@ import { config } from "../config/index.js";
 
 const cache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
 
+const OVERPASS_ENDPOINTS = [
+  "https://overpass.private.coffee/api/interpreter",
+  config.overpassApiUrl,
+  "https://overpass-api.de/api/interpreter",
+].filter((url, index, urls) => url && urls.indexOf(url) === index);
+
 /**
- * Fetch cafes from Overpass API based on location
- * Uses OverpassQL query to find coffee shops and cafes
+ * Fetch cafes from Overpass API based on location.
+ * Uses a geographic bounding box around the requested point.
  */
 export const overpassService = {
   async fetchCafes(latitude: number, longitude: number, radiusKm: number = 5) {
@@ -19,7 +25,6 @@ export const overpassService = {
     }
 
     try {
-      // OverpassQL query for cafes and coffee shops
       const latDelta = radiusKm / 111;
       const lonDelta =
         radiusKm / (111 * Math.cos((latitude * Math.PI) / 180));
@@ -28,28 +33,46 @@ export const overpassService = {
       const north = latitude + latDelta;
       const west = longitude - lonDelta;
       const east = longitude + lonDelta;
-
       const bbox = `${south},${west},${north},${east}`;
 
       const query = `
-        [out:json][timeout:60];
-        nwr["amenity"="cafe"]["name"](${bbox});
-        out center 50;
+        [out:json][timeout:25];
+        nwr["amenity"="cafe"](${bbox});
+        out center;
       `;
 
-      const response = await axios.post(config.overpassApiUrl, `data=${encodeURIComponent(query)}`, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-          "User-Agent": "BeanBeacon/1.0 (coffee discovery application)",
-    },
-        timeout: 90000,
-      });
+      let responseData: any = null;
+
+      for (const endpoint of OVERPASS_ENDPOINTS) {
+        try {
+          const response = await axios.get(endpoint, {
+            params: { data: query },
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "BeanBeacon/1.0 (coffee discovery application)",
+            },
+            timeout: 60000,
+          });
+
+          responseData = response.data;
+          break;
+        } catch (error: any) {
+          console.warn(
+            `Overpass endpoint failed: ${endpoint}`,
+            error.code || error.message
+          );
+        }
+      }
+
+      if (!responseData) {
+        console.error("All Overpass endpoints failed");
+        return [];
+      }
 
       const cafes: OverpassCafe[] = [];
 
-      if (response.data.elements) {
-        for (const element of response.data.elements) {
+      if (responseData.elements) {
+        for (const element of responseData.elements) {
           const lat = element.lat || element.center?.lat;
           const lon = element.lon || element.center?.lon;
 

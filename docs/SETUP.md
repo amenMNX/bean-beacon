@@ -1,5 +1,7 @@
 # Bean Beacon - Development Setup Guide
 
+> Current setup note: Docker Compose is the recommended workflow for this repository. See [CURRENT_STATUS.md](CURRENT_STATUS.md) for the current ports, map flow, admin routes, and verification commands.
+
 Quick reference for setting up the project locally.
 
 ## Prerequisites

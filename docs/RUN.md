@@ -16,6 +16,10 @@ docker compose up -d --build
 
 This starts the services defined in `docker-compose.yml`, including the frontend, backend, MongoDB, and monitoring services if configured there.
 
+The current repository uses `bean-beacon-frontend` and `bean-beacon-backend`. The frontend is served on port `8081` by Docker; port `5173` is used when running Vite directly outside Docker.
+
+For the complete current feature and API reference, see [CURRENT_STATUS.md](CURRENT_STATUS.md).
+
 Check the containers:
 
 ```

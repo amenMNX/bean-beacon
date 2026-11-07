@@ -5,7 +5,36 @@ import { coffeeShops, type CoffeeShop } from "@/data/shops";
 const FALLBACK_PHOTO =
   "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&auto=format&fit=crop";
 
-const toShop = (c: ApiCafe): CoffeeShop => ({
+const distanceKm = (fromLat: number, fromLng: number, toLat: number, toLng: number) => {
+  const earthRadiusKm = 6371;
+  const dLat = ((toLat - fromLat) * Math.PI) / 180;
+  const dLng = ((toLng - fromLng) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((fromLat * Math.PI) / 180) *
+      Math.cos((toLat * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const toShop = (c: ApiCafe, coords?: { lat: number; lng: number } | null): CoffeeShop => {
+  const lat = c.location?.coordinates?.[1];
+  const lng = c.location?.coordinates?.[0];
+  const calculatedDistanceKm =
+    coords && lat !== undefined && lng !== undefined
+      ? distanceKm(coords.lat, coords.lng, lat, lng)
+      : undefined;
+  const exactDistanceKm =
+    typeof c.distanceKm === "number" && Number.isFinite(c.distanceKm)
+      ? c.distanceKm
+      : calculatedDistanceKm;
+  const distance =
+    exactDistanceKm !== undefined
+      ? `${exactDistanceKm.toFixed(1)} km`
+      : undefined;
+
+  return {
   id: c._id,
   name: c.name,
   address: c.address,
@@ -20,20 +49,35 @@ const toShop = (c: ApiCafe): CoffeeShop => ({
   coffeeTypes: c.coffeeTypes ?? [],
   atmosphere: c.atmosphere ?? [],
   amenities: c.amenities ?? [],
-  lat: c.location?.coordinates?.[1],
-  lng: c.location?.coordinates?.[0],
+  lat,
+  lng,
+  distance,
+  distanceKm: exactDistanceKm,
   rating: c.userRating || undefined,
   reviewCount: c.reviewCount ?? 0,
-});
+  };
+};
 
-export const useCafes = () =>
+export const useCafes = (coords?: { lat: number; lng: number } | null) =>
   useQuery({
-    queryKey: ["cafes"],
+    queryKey: ["cafes", coords ?? null],
     queryFn: async (): Promise<{ shops: CoffeeShop[]; isSample: boolean }> => {
-      const data = await cafesApi.listAll();
+      const data = coords
+        ? await cafesApi.nearby(coords.lat, coords.lng, 20)
+        : await cafesApi.listAll();
       if (!data.length) {
         return { shops: coffeeShops.map((s) => ({ ...s, isSample: true })), isSample: true };
       }
-      return { shops: data.map(toShop), isSample: false };
+      const shops = data.map((cafe) => toShop(cafe, coords));
+
+      if (coords) {
+        shops.sort((a, b) => {
+          const distanceA = a.distanceKm ?? Number.POSITIVE_INFINITY;
+          const distanceB = b.distanceKm ?? Number.POSITIVE_INFINITY;
+          return distanceA - distanceB;
+        });
+      }
+
+      return { shops, isSample: false };
     },
   });

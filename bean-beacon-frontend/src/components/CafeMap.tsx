@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  CircleMarker,
   MapContainer,
+  Marker,
   Popup,
   TileLayer,
   useMap,
 } from "react-leaflet";
-import type { LatLngExpression } from "leaflet";
+import { divIcon, type LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { CoffeeShop } from "@/data/shops";
@@ -18,6 +18,22 @@ type LocatedShop = CoffeeShop & {
 };
 
 type Position = [number, number];
+
+const coffeeCupIcon = divIcon({
+  className: "bean-beacon-coffee-marker",
+  html: '<span aria-hidden="true">☕</span>',
+  iconSize: [36, 36],
+  iconAnchor: [18, 34],
+  popupAnchor: [0, -34],
+});
+
+const userLocationIcon = divIcon({
+  className: "bean-beacon-user-marker",
+  html: '<span aria-hidden="true">●</span>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+  popupAnchor: [0, -11],
+});
 
 const TUNISIA_BOUNDS: [[number, number], [number, number]] = [
   [30.0, 7.0],
@@ -165,29 +181,19 @@ export const CafeMap = ({ shops }: { shops: CoffeeShop[] }) => {
         />
 
         {userPosition && (
-          <CircleMarker
-            center={userPosition}
-            radius={10}
-            pathOptions={{
-              color: "#1d4ed8",
-              fillColor: "#2563eb",
-              fillOpacity: 0.9,
-            }}
+          <Marker
+            position={userPosition}
+            icon={userLocationIcon}
           >
             <Popup>You are here</Popup>
-          </CircleMarker>
+          </Marker>
         )}
 
         {locatedShops.map((shop) => (
-          <CircleMarker
+          <Marker
             key={shop.id}
-            center={[shop.lat, shop.lng]}
-            radius={9}
-            pathOptions={{
-              color: "#7c2d12",
-              fillColor: "#c2410c",
-              fillOpacity: 0.85,
-            }}
+            position={[shop.lat, shop.lng]}
+            icon={coffeeCupIcon}
           >
             <Popup>
               <strong>{shop.name}</strong>
@@ -196,14 +202,14 @@ export const CafeMap = ({ shops }: { shops: CoffeeShop[] }) => {
               {shop.distance && <p>{shop.distance} away</p>}
 
               <a
-                href={mapsLink(shop.name, shop.address)}
+                href={mapsLink(shop.name, shop.address, shop.lat, shop.lng)}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Open directions
               </a>
             </Popup>
-          </CircleMarker>
+          </Marker>
         ))}
       </MapContainer>
     </div>

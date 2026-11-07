@@ -7,6 +7,7 @@ import {
   createCafe,
   setCafePhoto,
   updateCafeStatus,
+  updateCafeDetails,
   deleteCafe,
 } from "../controllers/cafeController.js";
 import { recommendCafes } from "../controllers/recommendationController.js";
@@ -21,6 +22,7 @@ router.get("/all", optionalAuthMiddleware, listAllCafes);
 router.post("/", authMiddleware, createCafe);
 router.post("/:id/photo", authMiddleware, uploadCafePhoto, setCafePhoto);
 router.patch("/:id/status", authMiddleware, adminMiddleware, updateCafeStatus);
+router.patch("/:id", authMiddleware, updateCafeDetails);
 router.delete("/:id", authMiddleware, deleteCafe);
 
 // Existing: geo-radius discovery (OpenStreetMap-backed)

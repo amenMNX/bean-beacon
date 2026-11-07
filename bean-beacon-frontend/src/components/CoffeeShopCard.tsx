@@ -6,16 +6,27 @@ import type { CoffeeShop } from "@/data/shops";
 import { CafeReviews } from "@/components/CafeReviews";
 import { Link } from "react-router-dom";
 
-export const mapsLink = (name: string, address: string) =>
-  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${address}`)}`;
+export const mapsLink = (
+  name: string,
+  address: string,
+  lat?: number,
+  lng?: number
+) => {
+  const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+  const query = hasCoordinates ? `${lat},${lng}` : `${name}, ${address}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};
 
 interface CoffeeShopCardProps extends CoffeeShop {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
 }
 
-export const CoffeeShopCard = ({ id, isSample, name, image, rating, reviewCount, distance, category, isOpen, address, phone, hours, isFavorite, onToggleFavorite }: CoffeeShopCardProps) => {
-  const query = encodeURIComponent(`${name}, ${address}`);
+export const CoffeeShopCard = ({ id, isSample, name, image, rating, reviewCount, distance, category, isOpen, address, phone, hours, lat, lng, isFavorite, onToggleFavorite }: CoffeeShopCardProps) => {
+  const mapQuery = Number.isFinite(lat) && Number.isFinite(lng)
+    ? `${lat},${lng}`
+    : `${name}, ${address}`;
+  const query = encodeURIComponent(mapQuery);
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-card border-border">
       <div className="relative h-48 overflow-hidden">
@@ -80,7 +91,7 @@ export const CoffeeShopCard = ({ id, isSample, name, image, rating, reviewCount,
 
         <div className="flex gap-2">
           <Button asChild size="sm" className="flex-1">
-            <a href={mapsLink(name, address)} target="_blank" rel="noopener noreferrer">
+            <a href={mapsLink(name, address, lat, lng)} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4 mr-1" /> Open in Google Maps
             </a>
           </Button>
