@@ -1,5 +1,7 @@
 # Bean Beacon - Deployment Guide
 
+> Before deployment, read [CURRENT_STATUS.md](CURRENT_STATUS.md), especially the production security checklist and current Docker/API behavior.
+
 Complete guide to deploying Bean Beacon to production.
 
 ## Table of Contents

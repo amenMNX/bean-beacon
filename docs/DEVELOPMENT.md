@@ -1,5 +1,7 @@
 # Bean Beacon - Development Guide
 
+> The current frontend is React/Vite with Leaflet and the current backend is Express/Mongoose. The maintained project layout and feature behavior are documented in [CURRENT_STATUS.md](CURRENT_STATUS.md).
+
 Guide for developers working on Bean Beacon.
 
 ## Code Overview
