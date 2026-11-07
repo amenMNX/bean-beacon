@@ -20,23 +20,30 @@ export const overpassService = {
 
     try {
       // OverpassQL query for cafes and coffee shops
+      const latDelta = radiusKm / 111;
+      const lonDelta =
+        radiusKm / (111 * Math.cos((latitude * Math.PI) / 180));
+
+      const south = latitude - latDelta;
+      const north = latitude + latDelta;
+      const west = longitude - lonDelta;
+      const east = longitude + lonDelta;
+
+      const bbox = `${south},${west},${north},${east}`;
+
       const query = `
-        [bbox:${latitude - radiusKm / 111},${longitude - radiusKm / 111},${latitude + radiusKm / 111},${longitude + radiusKm / 111}];
-        (
-          node["amenity"="cafe"];
-          node["amenity"="coffee"];
-          way["amenity"="cafe"];
-          way["amenity"="coffee"];
-          node["amenity"="restaurant"]["cuisine"~"coffee"];
-        );
-        out center;
+        [out:json][timeout:60];
+        nwr["amenity"="cafe"]["name"](${bbox});
+        out center 50;
       `;
 
       const response = await axios.post(config.overpassApiUrl, `data=${encodeURIComponent(query)}`, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-        },
-        timeout: 30000,
+          Accept: "application/json",
+          "User-Agent": "BeanBeacon/1.0 (coffee discovery application)",
+    },
+        timeout: 90000,
       });
 
       const cafes: OverpassCafe[] = [];
