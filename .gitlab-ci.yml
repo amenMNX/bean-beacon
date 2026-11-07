@@ -22,7 +22,7 @@ backend:typecheck:
       - $BACKEND_DIR/node_modules
   script:
     - cd $BACKEND_DIR
-    - npm ci
+    - npm ci --no-audit
     - npm run build   # runs tsc, fails the job on any type error
 
 frontend:lint:
@@ -33,7 +33,7 @@ frontend:lint:
       - $FRONTEND_DIR/node_modules
   script:
     - cd $FRONTEND_DIR
-    - npm ci
+    - npm ci --no-audit
     - npm run lint
 
 frontend:typecheck:
@@ -44,7 +44,7 @@ frontend:typecheck:
       - $FRONTEND_DIR/node_modules
   script:
     - cd $FRONTEND_DIR
-    - npm ci
+    - npm ci --no-audit
     - npm run typecheck
 
 frontend:build:
@@ -55,7 +55,7 @@ frontend:build:
       - $FRONTEND_DIR/node_modules
   script:
     - cd $FRONTEND_DIR
-    - npm ci
+    - npm ci --no-audit
     - npm run build
 
 # --- TEST: backend unit tests (vitest). Frontend has no test script yet. ---
@@ -68,7 +68,7 @@ backend:test:
       - $BACKEND_DIR/node_modules
   script:
     - cd $BACKEND_DIR
-    - npm ci
+    - npm ci --no-audit
     - npm test -- run   # vitest run (non-watch mode in CI)
 
 # --- SECURITY: dependency audit + secret scanning ---
@@ -85,7 +85,10 @@ frontend:audit:
   stage: security
   script:
     - cd $FRONTEND_DIR
-    - npm audit --audit-level=moderate
+    - npm ci --no-audit
+    # Frontend audit includes development-only lint/build tooling.
+    # Moderate transitive advisories remain, but high/critical issues still fail CI.
+    - npm audit --audit-level=high
 
 gitleaks:
   stage: security

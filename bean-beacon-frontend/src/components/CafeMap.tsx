@@ -1,72 +1,211 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CircleMarker,
+  MapContainer,
+  Popup,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
+import "leaflet/dist/leaflet.css";
+
 import type { CoffeeShop } from "@/data/shops";
 import { mapsLink } from "@/components/CoffeeShopCard";
 
-declare global {
-  interface Window {
-    google?: typeof google;
-    __initCafeMap?: () => void;
-  }
-}
-
-let loader: Promise<void> | null = null;
-const loadMaps = () => {
-  if (window.google?.maps) return Promise.resolve();
-  if (loader) return loader;
-  loader = new Promise((resolve) => {
-    window.__initCafeMap = () => resolve();
-    const env = import.meta.env as Record<string, string>;
-    const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"]}&loading=async&callback=__initCafeMap&channel=${env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID"]}`;
-    s.async = true;
-    document.head.appendChild(s);
-  });
-  return loader;
+type LocatedShop = CoffeeShop & {
+  lat: number;
+  lng: number;
 };
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+type Position = [number, number];
+
+const TUNISIA_BOUNDS: [[number, number], [number, number]] = [
+  [30.0, 7.0],
+  [37.6, 12.0],
+];
+
+const TUNISIA_CENTER: LatLngExpression = [34.0, 9.0];
+
+const MapController = ({
+  shops,
+  userPosition,
+}: {
+  shops: LocatedShop[];
+  userPosition: Position | null;
+}) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+
+    resizeObserver.observe(map.getContainer());
+
+    const timer = window.setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [map]);
+
+  useEffect(() => {
+    map.invalidateSize();
+
+    if (userPosition) {
+      map.setView(userPosition, 15);
+      return;
+    }
+
+    if (shops.length === 0) {
+      map.setView(TUNISIA_CENTER, 6);
+      return;
+    }
+
+    if (shops.length === 1) {
+      map.setView([shops[0].lat, shops[0].lng], 15);
+      return;
+    }
+
+    map.fitBounds(
+      shops.map((shop) => [shop.lat, shop.lng] as [number, number]),
+      { padding: [40, 40] }
+    );
+  }, [map, shops, userPosition]);
+
+  return null;
+};
 
 export const CafeMap = ({ shops }: { shops: CoffeeShop[] }) => {
-  const el = useRef<HTMLDivElement>(null);
-  const map = useRef<google.maps.Map | null>(null);
-  const markers = useRef<google.maps.Marker[]>([]);
-  const [ready, setReady] = useState(false);
-  const pinned = useMemo(() => shops.filter((s) => s.lat != null && s.lng != null), [shops]);
+  const [userPosition, setUserPosition] = useState<Position | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
-  useEffect(() => {
-    loadMaps().then(() => {
-      if (!el.current || map.current) return;
-      map.current = new window.google.maps.Map(el.current, {
-        center: { lat: 0, lng: 0 }, zoom: 2, clickableIcons: false,
-        styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }],
-      });
-      setReady(true);
-    });
-  }, []);
+  const locatedShops = useMemo(
+    () =>
+      shops.filter(
+        (shop): shop is LocatedShop =>
+          typeof shop.lat === "number" &&
+          typeof shop.lng === "number" &&
+          shop.lat >= 30.0 &&
+          shop.lat <= 37.6 &&
+          shop.lng >= 7.0 &&
+          shop.lng <= 12.0
+      ),
+    [shops]
+  );
 
-  useEffect(() => {
-    if (!ready) return;
-    const g = window.google.maps;
-    markers.current.forEach((m) => m.setMap(null));
-    const info = new g.InfoWindow();
-    const bounds = new g.LatLngBounds();
-    markers.current = pinned.map((s) => {
-      const m = new g.Marker({ position: { lat: s.lat, lng: s.lng }, map: map.current, title: s.name });
-      bounds.extend(m.getPosition());
-      m.addListener("click", () => {
-        info.setContent(`<div style="max-width:220px"><strong>${esc(s.name)}</strong><p>${esc(s.address)}</p>${s.hours ? `<p style="white-space:pre-line">${esc(s.hours)}</p>` : ""}<a href="${mapsLink(s.name, s.address)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>${s.isSample ? "" : ` · <a href="/cafe/${encodeURIComponent(s.id)}">View profile</a>`}</div>`);
-        info.open({ map: map.current, anchor: m });
-      });
-      return m;
-    });
-    if (pinned.length === 1) { map.current.setCenter(bounds.getCenter()); map.current.setZoom(15); }
-    else if (pinned.length > 1) map.current.fitBounds(bounds);
-  }, [ready, pinned]);
+  const locateUser = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    setLocating(true);
+    setLocationError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserPosition([
+          position.coords.latitude,
+          position.coords.longitude,
+        ]);
+        setLocating(false);
+      },
+      () => {
+        setLocationError(
+          "Location access failed. Please allow location permission."
+        );
+        setLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000,
+      }
+    );
+  };
 
   return (
     <div className="space-y-2">
-      <div ref={el} className="h-[480px] w-full rounded-xl border border-border bg-muted" />
-      {pinned.length === 0 && <p className="text-sm text-muted-foreground">No cafés match on the map yet. Cafés added on the Manage page get a pin from their address or coordinates.</p>}
+      <button
+        type="button"
+        onClick={locateUser}
+        disabled={locating}
+        className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+      >
+        {locating ? "Finding your location..." : "Use my location"}
+      </button>
+
+      {locationError && (
+        <p className="text-sm text-destructive">{locationError}</p>
+      )}
+
+      <MapContainer
+        center={TUNISIA_CENTER}
+        zoom={6}
+        minZoom={6}
+        maxZoom={18}
+        maxBounds={TUNISIA_BOUNDS}
+        maxBoundsViscosity={1}
+        scrollWheelZoom
+        className="h-[480px] w-full rounded-xl border border-border"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <MapController
+          shops={locatedShops}
+          userPosition={userPosition}
+        />
+
+        {userPosition && (
+          <CircleMarker
+            center={userPosition}
+            radius={10}
+            pathOptions={{
+              color: "#1d4ed8",
+              fillColor: "#2563eb",
+              fillOpacity: 0.9,
+            }}
+          >
+            <Popup>You are here</Popup>
+          </CircleMarker>
+        )}
+
+        {locatedShops.map((shop) => (
+          <CircleMarker
+            key={shop.id}
+            center={[shop.lat, shop.lng]}
+            radius={9}
+            pathOptions={{
+              color: "#7c2d12",
+              fillColor: "#c2410c",
+              fillOpacity: 0.85,
+            }}
+          >
+            <Popup>
+              <strong>{shop.name}</strong>
+              <p>{shop.address}</p>
+
+              {shop.distance && <p>{shop.distance} away</p>}
+
+              <a
+                href={mapsLink(shop.name, shop.address)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open directions
+              </a>
+            </Popup>
+          </CircleMarker>
+        ))}
+      </MapContainer>
     </div>
   );
 };
