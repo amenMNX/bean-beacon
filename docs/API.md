@@ -643,4 +643,4 @@ curl -X POST http://localhost:3000/api/cafes/507f1f77bcf86cd799439010/ratings \
 
 ---
 
-For frontend implementation examples, see the [frontend services](../bean-beacon-app-main/src/services/api.ts).
+For frontend implementation examples, see the [frontend API client](../bean-beacon-frontend/src/lib/api.ts).

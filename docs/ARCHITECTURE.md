@@ -5,7 +5,7 @@
 Bean Beacon is a coffee-shop discovery and management application. It combines a public café directory with:
 
 - search, category and attribute filtering;
-- map and Google Maps directions;
+- interactive café map and Google Maps directions;
 - café profiles and community reviews;
 - user-submitted café listings with moderation;
 - a preference-based recommendation feature;
@@ -38,7 +38,8 @@ MongoDB :27017
 External services:
   - Overpass API: imported café discovery for radius searches
   - Nominatim: address-to-coordinate geocoding for submitted cafés
-  - Google Maps JavaScript API / Maps links: browser maps and directions
+  - Leaflet with OpenStreetMap tiles: browser map
+  - Google Maps links: directions to cafés
 
 Observability:
   Backend /metrics -> Prometheus -> Grafana
@@ -122,12 +123,11 @@ The main page then performs filtering locally. Category matching is normalized f
 
 ### 4.4 Maps
 
-The current code uses Google Maps, not Leaflet:
+The current code uses Leaflet with OpenStreetMap tiles:
 
-- `CafeMap.tsx` lazy-loads the Google Maps JavaScript API using a Vite environment key;
-- it creates markers only for cafés with coordinates;
-- marker info windows contain the café name, address, hours and a Google Maps link;
-- `CoffeeShopCard` embeds a Google Maps iframe and offers a directions/search link.
+- `CafeMap.tsx` renders markers for cafés with coordinates and a marker for the user's location;
+- marker popups include café details and a Google Maps directions link;
+- `CoffeeShopCard` also offers a Google Maps directions link.
 
 The backend still stores GeoJSON coordinates and supports a location-radius API. However, the current home page location button only reads browser geolocation and displays a toast; it does not yet call the backend radius endpoint.
 
@@ -353,14 +353,14 @@ These are observations from the current source, not assumptions:
 
 1. The frontend does not currently call the favorites API, although the backend endpoints and models exist.
 2. The home page's location button obtains browser coordinates but does not use them to call `/api/cafes`.
-3. The current map integration is Google Maps; README text referring to Leaflet is stale.
+3. The café map uses Leaflet and OpenStreetMap tiles; Google Maps is used for directions links.
 4. The frontend uses a fallback image and does not implement café photo storage despite model fields reserved for it.
 5. Recommendation input contains café data supplied by the browser. The backend validates its shape but does not independently reload café records, so callers can recommend over client-provided data.
 6. The backend has no rate limiting, pagination for most public views, or centralized request schema validation library beyond hand-written checks and Mongoose validation.
 7. Rating aggregate updates are read-then-write operations and are not transactional; concurrent reviews could produce a stale aggregate under load.
 8. `JWT_SECRET` has a development fallback in application config. Production Compose correctly requires it, but non-Compose deployments must enforce the same rule.
 9. Prometheus and Grafana are included in development Compose but not the production Compose file.
-10. Existing documentation contains old paths such as `bean-beacon-app-main` and old port assumptions. Use the current directory names and Compose files as the operational reference.
+10. If documentation conflicts with the implementation, verify directory names, ports, and service behavior against the source and Compose files.
 
 ## 11. Recommended reading order for maintainers
 

@@ -9,26 +9,23 @@ Guide for developers working on Bean Beacon.
 ### Frontend Architecture
 
 **Layers:**
-1. **Pages** (`src/pages/`) - Full page components
-2. **Components** (`src/components/`) - Reusable UI components
-3. **Providers** (`src/providers/`) - Context providers (Auth, Theme)
-4. **Hooks** (`src/hooks/`) - Custom React hooks
-5. **Services** (`src/services/`) - API calls
-6. **Utils** (`src/utils/`) - Utility functions
+1. **Pages** (`src/pages/`) - Route-level screens
+2. **Components** (`src/components/`) - Reusable UI and feature components
+3. **Hooks** (`src/hooks/`) - React Query hooks and shared UI logic
+4. **API client** (`src/lib/api.ts`) - Typed `fetch` wrapper and API methods
+5. **Data** (`src/data/`) - Café types and fallback sample data
 
 **Data Flow:**
 ```
-User Interaction
+Page or component
     ↓
-Component State/Hooks
+React Query hook
     ↓
-API Service Call (Axios)
+API client (fetch)
     ↓
-Backend Response
+Express API response
     ↓
-Context/Query Update
-    ↓
-Component Re-render
+Query data and UI render
 ```
 
 ### Backend Architecture
@@ -202,18 +199,22 @@ const nearby = await Cafe.find({
 
 ```typescript
 import { useQuery } from "@tanstack/react-query";
-import { cafeAPI } from "@/services/api";
+import { cafesApi } from "@/lib/api";
 
 const { data, isLoading, error } = useQuery({
   queryKey: ["cafes", latitude, longitude],
-  queryFn: () => cafeAPI.getCafesByLocation(latitude, longitude)
-    .then(res => res.data.data),
-  enabled: !!latitude // Only run if latitude exists
+  queryFn: () => {
+    if (latitude === undefined || longitude === undefined) {
+      throw new Error("Location is required");
+    }
+    return cafesApi.nearby(latitude, longitude);
+  },
+  enabled: latitude !== undefined && longitude !== undefined
 });
 
 if (isLoading) return <div>Loading...</div>;
 if (error) return <div>Error: {error.message}</div>;
-return <div>{data?.length} cafés found</div>;
+return <div>{data?.length ?? 0} cafés found</div>;
 ```
 
 ### Using Context

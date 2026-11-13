@@ -2,14 +2,31 @@
 
 > Before deployment, read [CURRENT_STATUS.md](CURRENT_STATUS.md), especially the production security checklist and current Docker/API behavior.
 
-Complete guide to deploying Bean Beacon to production.
+Complete guide to deploying Bean Beacon to the local production environment.
 
-## Table of Contents
-1. [Frontend Deployment](#frontend-deployment)
-2. [Backend Deployment](#backend-deployment)
-3. [Database Setup](#database-setup)
-4. [Environment Configuration](#environment-configuration)
-5. [Post-Deployment Checklist](#post-deployment-checklist)
+> The project intentionally does not use Harbor or another private image registry. Docker Compose builds and runs the production images locally.
+
+## Recommended deployment
+
+From the repository root:
+
+```powershell
+$env:JWT_SECRET = "replace-with-a-long-random-secret"
+docker compose -f docker-compose.prod.yml config --quiet
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml ps
+```
+
+The production application is available at `http://localhost`. Verify the API through
+`http://localhost/api/health`.
+
+For the local automated deployment script:
+
+```powershell
+pyinfra @local deploy.py
+```
+
+The sections below describe optional hosted deployment alternatives. They are not required for the coursework deliverables.
 
 ## Frontend Deployment
 
@@ -36,7 +53,7 @@ Complete guide to deploying Bean Beacon to production.
    - Go to [vercel.com](https://vercel.com)
    - Click "New Project"
    - Select GitHub repository
-   - Choose `bean-beacon-app-main` as root directory
+   - Choose `bean-beacon-frontend` as root directory
 
 3. **Configure environment variables:**
    - Add `VITE_API_URL` = `https://your-backend-url.com/api`
@@ -49,7 +66,7 @@ Complete guide to deploying Bean Beacon to production.
 
 1. **Build the project:**
    ```bash
-   cd bean-beacon-app-main
+   cd bean-beacon-frontend
    npm run build
    ```
 
@@ -76,7 +93,7 @@ Complete guide to deploying Bean Beacon to production.
      listen 80;
      server_name yourdomain.com;
 
-     root /var/www/bean-beacon-app/dist;
+     root /var/www/bean-beacon-frontend/dist;
      index index.html;
 
      location / {
