@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bean Beacon — Cahier des charges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --espresso:   #1A0F0A;
+  --roast:      #2E1A0E;
+  --amber:      #C8822A;
+  --amber-light:#E8A84A;
+  --cream:      #F9F5F0;
+  --surface:    #EDE8E0;
+  --slate:      #7A8B8F;
+  --slate-dark: #3D4F53;
+  --white:      #FFFFFF;
+  --code-bg:    #0F1A1C;
+  --code-text:  #A8D5C0;
+  --success:    #3DAA72;
+  --tag-bg:     rgba(200,130,42,0.12);
+
+  --heading: 'Space Grotesk', sans-serif;
+  --body:    'Inter', sans-serif;
+  --mono:    'JetBrains Mono', monospace;
+
+  --sidebar-w: 240px;
+  --gap: 2rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--body);
+  background: var(--cream);
+  color: var(--espresso);
+  line-height: 1.65;
+  font-size: 1rem;
+}
+
+/* ── LAYOUT ── */
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--espresso);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1.4rem 1.8rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo svg { flex-shrink: 0; }
+
+.sidebar-logo-text {
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--white);
+  line-height: 1.2;
+}
+.sidebar-logo-text span {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--slate);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+nav { padding: 1.4rem 0; }
+
+nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.42rem 1.4rem;
+  font-family: var(--body);
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+  border-left: 2px solid transparent;
+}
+
+nav a:hover, nav a.active {
+  color: var(--white);
+  background: rgba(255,255,255,0.05);
+  border-left-color: var(--amber);
+}
+
+nav .nav-section {
+  font-family: var(--heading);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--slate);
+  text-transform: uppercase;
+  padding: 1.2rem 1.4rem 0.4rem;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1.2rem 1.4rem 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.7rem;
+  color: var(--slate);
+}
+
+/* ── MAIN ── */
+main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--roast);
+  color: var(--white);
+  padding: 4.5rem 3.5rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 90% 20%, rgba(200,130,42,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--amber);
+  margin-bottom: 1.4rem;
+  opacity: 0.9;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--amber);
+}
+
+.hero h1 {
+  font-family: var(--heading);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--amber-light);
+}
+
+.hero-desc {
+  max-width: 56ch;
+  color: rgba(255,255,255,0.65);
+  font-size: 1rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+}
+.badge svg { opacity: 0.7; }
+
+/* ── CONTENT ── */
+.content {
+  padding: 0 3.5rem 5rem;
+  max-width: 820px;
+}
+
+/* ── SECTION ── */
+.doc-section {
+  padding-top: 4rem;
+  scroll-margin-top: 2rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--surface);
+}
+
+.section-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--amber);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.section-icon svg { color: var(--white); }
+
+.section-num {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.section-title {
+  font-family: var(--heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--espresso);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* ── PROSE ── */
+.prose p { margin-bottom: 1rem; color: var(--slate-dark); }
+.prose p:last-child { margin-bottom: 0; }
+
+/* ── ARCH DIAGRAM ── */
+.arch-diagram {
+  background: var(--code-bg);
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  margin: 1.5rem 0;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--code-text);
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+/* ── SERVICE TABLE ── */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.service-card {
+  background: var(--white);
+  border: 1px solid var(--surface);
+  border-radius: 10px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.service-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.3rem;
+}
+
+.service-card h4 {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--espresso);
+}
+
+.service-card p {
+  font-size: 0.75rem;
+  color: var(--slate);
+}
+
+.service-card code {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--amber);
+  background: var(--tag-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ── CODE BLOCK ── */
+.code-wrap {
+  margin: 1.5rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.code-header {
+  background: #1D2D30;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.code-header-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #FF5F57; }
+.dot-y { background: #FEBC2E; }
+.dot-g { background: #28C840; }
+
+.code-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.4);
+}
+
+.code-body {
+  background: var(--code-bg);
+  padding: 1.2rem 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--code-text);
+  line-height: 1.8;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.code-body .cmd { color: #7DD3FC; }
+.code-body .flag { color: #F9A8D4; }
+.code-body .str { color: #86EFAC; }
+.code-body .comment { color: rgba(255,255,255,0.3); }
+
+/* ── PIPELINE ── */
+.pipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.pipe-step {
+  flex: 1;
+  min-width: 140px;
+  position: relative;
+}
+
+.pipe-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: -1px;
+  width: 2px;
+  height: calc(100% - 20px);
+  background: var(--surface);
+  display: none;
+}
+
+.pipe-connector {
+  display: flex;
+  align-items: center;
+  padding-top: 14px;
+}
+
+.pipe-connector-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--amber) 0%, var(--amber-light) 100%);
+}
+
+.pipe-connector-arrow {
+  color: var(--amber-light);
+  font-size: 1rem;
+  margin-left: -4px;
+}
+
+.pipe-box {
+  background: var(--white);
+  border: 1px solid var(--surface);
+  border-top: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.pipe-step:last-child .pipe-box { border-top-color: var(--success); }
+.pipe-step:nth-child(5) .pipe-box { border-top-color: #F87171; }
+.pipe-step:nth-child(3) .pipe-box { border-top-color: #818CF8; }
+
+.pipe-num {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--slate);
+  margin-bottom: 0.4rem;
+}
+
+.pipe-name {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--espresso);
+  margin-bottom: 0.5rem;
+}
+
+.pipe-items {
+  list-style: none;
+  font-size: 0.72rem;
+  color: var(--slate);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pipe-items li::before {
+  content: '→ ';
+  color: var(--amber);
+}
+
+/* ── TABLE ── */
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.85rem;
+}
+
+.doc-table th {
+  background: var(--espresso);
+  color: var(--white);
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-align: left;
+  padding: 0.7rem 1rem;
+  letter-spacing: 0.03em;
+}
+
+.doc-table th:first-child { border-radius: 8px 0 0 0; }
+.doc-table th:last-child { border-radius: 0 8px 0 0; }
+
+.doc-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--surface);
+  color: var(--slate-dark);
+}
+
+.doc-table tr:last-child td { border-bottom: none; }
+.doc-table tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+
+.doc-table td code {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--amber);
+  background: var(--tag-bg);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* ── ALERT BOXES ── */
+.alert {
+  display: flex;
+  gap: 0.9rem;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  margin: 1.2rem 0;
+  font-size: 0.85rem;
+}
+
+.alert-warning {
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  color: #92400E;
+}
+
+.alert-info {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E40AF;
+}
+
+.alert-danger {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #9F1239;
+}
+
+.alert-icon { flex-shrink: 0; margin-top: 1px; }
+.alert strong { font-family: var(--heading); font-weight: 600; display: block; margin-bottom: 0.2rem; }
+
+/* ── SUPERVISION CARDS ── */
+.supervision-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.sup-card {
+  background: var(--white);
+  border: 1px solid var(--surface);
+  border-radius: 10px;
+  padding: 1.4rem;
+  text-align: center;
+}
+
+.sup-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.8rem;
+}
+
+.sup-card h4 {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.sup-card p {
+  font-size: 0.75rem;
+  color: var(--slate);
+  margin-bottom: 0.6rem;
+}
+
+.sup-card code {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--amber);
+  background: var(--tag-bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* ── DELIVERABLES ── */
+.deliverables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.del-item {
+  background: var(--white);
+  border: 1px solid var(--surface);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.del-item-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: var(--tag-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--amber);
+}
+
+.del-item h5 {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--espresso);
+  margin-bottom: 0.2rem;
+}
+
+.del-item p {
+  font-size: 0.72rem;
+  color: var(--slate);
+}
+
+/* ── PREREQS ── */
+.prereq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1.2rem 0;
+}
+
+.prereq-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--white);
+  border: 1px solid var(--surface);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+}
+
+.prereq-item svg { flex-shrink: 0; }
+
+.prereq-item strong {
+  font-family: var(--heading);
+  font-weight: 600;
+  color: var(--espresso);
+  margin-right: 0.4rem;
+}
+
+/* ── ISSUES ── */
+.issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.2rem 0;
+}
+
+.issue-item {
+  border-left: 3px solid var(--amber);
+  padding: 0.8rem 1.2rem;
+  background: var(--white);
+  border-radius: 0 8px 8px 0;
+}
+
+.issue-item h5 {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--espresso);
+  margin-bottom: 0.4rem;
+}
+
+.issue-item p {
+  font-size: 0.8rem;
+  color: var(--slate-dark);
+  margin-bottom: 0.5rem;
+}
+
+/* ── INLINE CODE ── */
+p code, li code {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  background: var(--surface);
+  color: var(--roast);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+/* ── PIPE LAYOUT ── */
+.pipe-row {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  gap: 0;
+  padding-bottom: 0.5rem;
+}
+
+.pipe-node {
+  flex-shrink: 0;
+  background: var(--white);
+  border: 1px solid var(--surface);
+  border-top: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  min-width: 130px;
+}
+.pipe-node:nth-child(1) { border-top-color: #818CF8; }
+.pipe-node:nth-child(3) { border-top-color: #34D399; }
+.pipe-node:nth-child(5) { border-top-color: #F87171; }
+.pipe-node:nth-child(7) { border-top-color: var(--amber); }
+
+.pipe-arrow {
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+  color: var(--amber);
+  font-size: 1.1rem;
+}
+
+.pipe-node-num {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  color: var(--slate);
+  margin-bottom: 0.3rem;
+}
+
+.pipe-node-title {
+  font-family: var(--heading);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--espresso);
+  margin-bottom: 0.4rem;
+}
+
+.pipe-node-items {
+  list-style: none;
+  font-size: 0.68rem;
+  color: var(--slate);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.pipe-node-items li::before { content: '· '; }
+
+/* ── URL CHIP ── */
+.url-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  background: var(--tag-bg);
+  color: var(--amber);
+  border: 1px solid rgba(200,130,42,0.25);
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .hero, .content { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .supervision-grid { grid-template-columns: 1fr 1fr; }
+  .pipe-row { flex-wrap: wrap; }
+}
+
+@media (max-width: 600px) {
+  .supervision-grid { grid-template-columns: 1fr; }
+  .service-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cream: #0E1618;
+    --surface: #1A2528;
+    --white: #1D2D30;
+    --espresso: #F9F5F0;
+    --roast: #0A0F10;
+    --slate-dark: #9FB5BB;
+    --slate: #6B8690;
+    --tag-bg: rgba(200,130,42,0.15);
+  }
+  .doc-table th { background: #0A1416; }
+  .hero { background: #0A1012; }
+  .alert-warning { background: #1C1200; border-color: #7C4A00; color: #FCD34D; }
+  .alert-info { background: #0A1628; border-color: #1E3A5F; color: #93C5FD; }
+  .alert-danger { background: #1C0A0E; border-color: #7C1C2A; color: #FCA5A5; }
+  .issue-item { background: #1A2528; }
+  .prereq-item { background: #1A2528; }
+  .service-card { background: #1A2528; }
+  .sup-card { background: #1A2528; }
+  .del-item { background: #1A2528; }
+  .pipe-node { background: #1A2528; }
+  p code, li code { background: #1A2528; color: #E8C88A; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <!-- Coffee cup icon -->
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="28" rx="7" fill="#C8822A"/>
+      <path d="M7 11h14l-1.5 9H8.5L7 11Z" fill="white" fill-opacity=".9"/>
+      <path d="M20 13h2a2 2 0 0 1 0 4h-2" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M11 7c0 0 1-1.5 0-2.5M14 7c0 0 1-1.5 0-2.5" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <div class="sidebar-logo-text">
+      Bean Beacon
+      <span>Cahier des charges</span>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-section">Vue d'ensemble</div>
+    <a href="#presentation">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      Présentation
+    </a>
+    <a href="#architecture">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
+      Architecture
+    </a>
+
+    <div class="nav-section">Mise en route</div>
+    <a href="#prerequis">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0z"/></svg>
+      Prérequis
+    </a>
+    <a href="#demarrage">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Démarrage Docker
+    </a>
+    <a href="#tests">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-6-6z"/><polyline points="9 3 9 9 15 9"/></svg>
+      Tests
+    </a>
+
+    <div class="nav-section">CI/CD & Déploiement</div>
+    <a href="#git">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+      Workflow Git
+    </a>
+    <a href="#pipeline">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      Pipeline CI/CD
+    </a>
+    <a href="#production">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Production
+    </a>
+
+    <div class="nav-section">Supervision</div>
+    <a href="#supervision">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Monitoring
+    </a>
+
+    <div class="nav-section">Référence</div>
+    <a href="#livrables">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Livrables
+    </a>
+    <a href="#problemes">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Problèmes fréquents
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    v1.0 · Documentation finale<br>Bean Beacon Project
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Documentation technique</div>
+    <h1>Bean Beacon —<br><em>Cahier des charges</em></h1>
+    <p class="hero-desc">
+      Application web de découverte de cafés, construite avec React, Express, MongoDB
+      et orchestrée via Docker Compose, avec supervision et déploiement CI/CD GitLab.
+    </p>
+    <div class="hero-badges">
+      <span class="badge">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        React + Vite + TypeScript
+      </span>
+      <span class="badge">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Express + TypeScript
+      </span>
+      <span class="badge">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        MongoDB
+      </span>
+      <span class="badge">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Docker Compose
+      </span>
+      <span class="badge">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        GitLab CI/CD
+      </span>
+      <span class="badge">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Prometheus · Grafana · Uptime Kuma
+      </span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- 1. PRÉSENTATION -->
+    <section class="doc-section" id="presentation">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 01</span>
+          <h2 class="section-title">Présentation du projet</h2>
+        </div>
+      </div>
+      <div class="prose">
+        <p>
+          <strong>Bean Beacon</strong> est une application web qui permet de découvrir des cafés,
+          de rechercher des établissements à proximité, d'ajouter des favoris et de publier
+          des évaluations. L'architecture existante est conservée — l'exemple Flask des guides
+          n'est pas utilisé.
+        </p>
+      </div>
+
+      <div class="service-grid">
+        <div class="service-card">
+          <div class="service-card-icon" style="background:#EEF2FF;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#818CF8" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+          </div>
+          <h4>Frontend</h4>
+          <p>Interface utilisateur réactive</p>
+          <code>React + Vite + TypeScript</code>
+        </div>
+        <div class="service-card">
+          <div class="service-card-icon" style="background:#ECFDF5;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#34D399" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <h4>Backend</h4>
+          <p>API REST & logique métier</p>
+          <code>Express + TypeScript</code>
+        </div>
+        <div class="service-card">
+          <div class="service-card-icon" style="background:#FFF7ED;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#FB923C" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <h4>Base de données</h4>
+          <p>Stockage persistant</p>
+          <code>MongoDB :27017</code>
+        </div>
+        <div class="service-card">
+          <div class="service-card-icon" style="background:#F0FDF4;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#22C55E" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <h4>Conteneurs</h4>
+          <p>Orchestration complète</p>
+          <code>Docker Compose</code>
+        </div>
+        <div class="service-card">
+          <div class="service-card-icon" style="background:#FFF1F2;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#F43F5E" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <h4>CI/CD</h4>
+          <p>Automatisation du déploiement</p>
+          <code>GitLab Pipeline</code>
+        </div>
+        <div class="service-card">
+          <div class="service-card-icon" style="background:#FEFCE8;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#EAB308" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h4>Supervision</h4>
+          <p>Monitoring & alertes</p>
+          <code>Prometheus · Grafana</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ARCHITECTURE -->
+    <section class="doc-section" id="architecture">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 02</span>
+          <h2 class="section-title">Architecture</h2>
+        </div>
+      </div>
+      <div class="prose">
+        <p>L'ensemble des services communique sur un réseau Docker Bridge partagé. Les flux applicatifs traversent trois couches : frontend → backend → base de données. La supervision est isolée mais connectée au même réseau.</p>
+      </div>
+
+      <div class="arch-diagram">
+<span style="color:#7DD3FC">Utilisateur (navigateur)</span>
+       │
+       ▼
+<span style="color:#A5F3FC">┌──────────────────────────────────────┐</span>
+<span style="color:#A5F3FC">│  Frontend  React / Vite              │</span>  <span style="color:#6EE7B7">http://localhost:8081</span>
+<span style="color:#A5F3FC">└───────────────────┬──────────────────┘</span>
+                    │  REST API
+                    ▼
+<span style="color:#FDE68A">┌──────────────────────────────────────┐</span>
+<span style="color:#FDE68A">│  Backend   Express / TypeScript      │</span>  <span style="color:#6EE7B7">http://localhost:3000</span>
+<span style="color:#FDE68A">│  GET /api/health  ·  GET /metrics    │</span>
+<span style="color:#FDE68A">└───────────────────┬──────────────────┘</span>
+                    │  MongoDB Driver
+                    ▼
+<span style="color:#F9A8D4">┌──────────────────────────────────────┐</span>
+<span style="color:#F9A8D4">│  MongoDB                             │</span>  <span style="color:#6EE7B7">:27017</span>
+<span style="color:#F9A8D4">└──────────────────────────────────────┘</span>
+
+<span style="color:rgba(255,255,255,0.3)">── Supervision ───────────────────────────────────</span>
+  Prometheus  :9090   scrape → /metrics
+  Grafana     :3001   dashboards
+  Uptime Kuma :3002   moniteur HTTP /api/health
+      </div>
+
+      <table class="doc-table">
+        <thead>
+          <tr><th>Service</th><th>Adresse locale</th><th>Rôle</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Application</td><td><code>http://localhost:8081</code></td><td>Interface utilisateur</td></tr>
+          <tr><td>API</td><td><code>http://localhost:3000</code></td><td>Endpoints REST</td></tr>
+          <tr><td>Health check</td><td><code>http://localhost:3000/api/health</code></td><td>Disponibilité de l'API</td></tr>
+          <tr><td>Métriques</td><td><code>http://localhost:3000/metrics</code></td><td>Prometheus scrape</td></tr>
+          <tr><td>Prometheus</td><td><code>http://localhost:9090</code></td><td>Collecte de métriques</td></tr>
+          <tr><td>Grafana</td><td><code>http://localhost:3001</code></td><td>Dashboards</td></tr>
+          <tr><td>Uptime Kuma</td><td><code>http://localhost:3002</code></td><td>Moniteur de disponibilité</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. PRÉREQUIS -->
+    <section class="doc-section" id="prerequis">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0z"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 03</span>
+          <h2 class="section-title">Prérequis</h2>
+        </div>
+      </div>
+
+      <div class="prereq-list">
+        <div class="prereq-item">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#818CF8" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <div><strong>Docker Desktop</strong> avec Docker Compose — orchestration des conteneurs</div>
+        </div>
+        <div class="prereq-item">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#F87171" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+          <div><strong>Git</strong> — versioning et intégration GitLab CI/CD</div>
+        </div>
+        <div class="prereq-item">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#34D399" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <div><strong>Node.js + npm</strong> — validations hors Docker (build, lint, tests)</div>
+        </div>
+        <div class="prereq-item">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#FBBF24" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          <div><strong>Python + pyinfra</strong> — déploiement local automatisé</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — vérification des outils</span>
+        </div>
+        <div class="code-body"><span class="cmd">docker</span> <span class="flag">--version</span>
+<span class="cmd">docker</span> compose version
+<span class="cmd">git</span> <span class="flag">--version</span>
+<span class="cmd">node</span> <span class="flag">--version</span>
+<span class="cmd">npm</span> <span class="flag">--version</span></div>
+      </div>
+    </section>
+
+    <!-- 4. DÉMARRAGE -->
+    <section class="doc-section" id="demarrage">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 04</span>
+          <h2 class="section-title">Démarrage avec Docker Compose</h2>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Depuis la racine du projet, créer le réseau externe si absent, puis démarrer la stack de développement.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — démarrage</span>
+        </div>
+        <div class="code-body"><span class="comment"># Se placer dans le projet</span>
+<span class="cmd">cd</span> <span class="str">"C:\Users\msi\Desktop\coffee-quest\bean-beacon"</span>
+
+<span class="comment"># Créer le réseau si nécessaire</span>
+<span class="cmd">docker</span> network inspect bean-beacon_app-network *> $null
+<span class="flag">if</span> ($LASTEXITCODE <span class="flag">-ne</span> 0) {
+    <span class="cmd">docker</span> network create bean-beacon_app-network
+}
+
+<span class="comment"># Valider la configuration puis démarrer</span>
+<span class="cmd">docker</span> compose config <span class="flag">--quiet</span>
+<span class="cmd">docker</span> compose up <span class="flag">-d --build</span></div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — vérification & test API</span>
+        </div>
+        <div class="code-body"><span class="comment"># État des conteneurs</span>
+<span class="cmd">docker</span> compose ps
+
+<span class="comment"># Test de l'API</span>
+<span class="cmd">Invoke-RestMethod</span> <span class="str">"http://localhost:3000/api/health"</span>
+
+<span class="comment"># Réponse attendue :</span>
+<span class="comment"># { "success": true, "message": "Bean Beacon API is running" }</span>
+
+<span class="comment"># Logs en continu</span>
+<span class="cmd">docker</span> compose logs <span class="flag">-f</span> backend
+<span class="cmd">docker</span> compose logs <span class="flag">-f</span> frontend</div>
+      </div>
+
+      <div class="alert alert-warning">
+        <div class="alert-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <strong>Arrêt sans perte de données</strong>
+          Utiliser <code>docker compose stop</code> pour préserver les volumes MongoDB et Grafana.
+          Éviter <code>docker compose down -v</code> qui supprime les données persistantes.
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. TESTS -->
+    <section class="doc-section" id="tests">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-6-6z"/><polyline points="9 3 9 9 15 9"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 05</span>
+          <h2 class="section-title">Tests et validations</h2>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — validation backend</span>
+        </div>
+        <div class="code-body"><span class="cmd">cd</span> bean-beacon-backend
+<span class="cmd">npm</span> ci
+<span class="cmd">npm</span> run build
+<span class="cmd">npm</span> test <span class="flag">-- run</span></div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — validation frontend</span>
+        </div>
+        <div class="code-body"><span class="cmd">cd</span> ..\bean-beacon-frontend
+<span class="cmd">npm</span> ci
+<span class="cmd">npm</span> run lint
+<span class="cmd">npm</span> run typecheck
+<span class="cmd">npm</span> run build
+<span class="cmd">cd</span> ..</div>
+      </div>
+    </section>
+
+    <!-- 6. GIT -->
+    <section class="doc-section" id="git">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 06</span>
+          <h2 class="section-title">Workflow Git et GitLab</h2>
+        </div>
+      </div>
+      <div class="prose">
+        <p>La branche <code>main</code> doit rester déployable en permanence. Toute modification passe par une branche courte et une Merge Request avec revue humaine avant fusion.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">Git — cycle de contribution</span>
+        </div>
+        <div class="code-body"><span class="cmd">git</span> checkout <span class="flag">-b</span> <span class="str">feature/nom-de-la-fonctionnalite</span>
+<span class="cmd">git</span> add .
+<span class="cmd">git</span> commit <span class="flag">-m</span> <span class="str">"feat: description de la modification"</span>
+<span class="cmd">git</span> push origin <span class="str">feature/nom-de-la-fonctionnalite</span>
+
+<span class="comment"># → Créer une Merge Request sur GitLab</span>
+<span class="comment"># → Revue de code, puis fusion dans main</span>
+<span class="comment"># → Le pipeline CI/CD se déclenche automatiquement</span></div>
+      </div>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+        <div>
+          <strong>Revue humaine obligatoire</strong>
+          Le script <code>demo.ps1</code> ne crée pas de commit ni de Merge Request automatiquement. Ces actions sont réservées au workflow GitLab afin de garantir une validation manuelle à chaque changement.
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. PIPELINE -->
+    <section class="doc-section" id="pipeline">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 07</span>
+          <h2 class="section-title">Pipeline GitLab CI/CD</h2>
+        </div>
+      </div>
+      <div class="prose">
+        <p>Le fichier <code>.gitlab-ci.yml</code> orchestre quatre étapes séquentielles. Le Runner doit porter le tag <code>bean-beacon</code> — si les jobs restent en attente, vérifier ce tag. Harbor est exclu du périmètre.</p>
+      </div>
+
+      <div class="pipe-row">
+        <div class="pipe-node">
+          <div class="pipe-node-num">ÉTAPE 01</div>
+          <div class="pipe-node-title">validate</div>
+          <ul class="pipe-node-items">
+            <li>Compilation backend</li>
+            <li>Lint frontend</li>
+            <li>TypeScript check</li>
+            <li>Build frontend</li>
+          </ul>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node">
+          <div class="pipe-node-num">ÉTAPE 02</div>
+          <div class="pipe-node-title">test</div>
+          <ul class="pipe-node-items">
+            <li>Tests unitaires</li>
+            <li>Vitest (backend)</li>
+          </ul>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node">
+          <div class="pipe-node-num">ÉTAPE 03</div>
+          <div class="pipe-node-title">security</div>
+          <ul class="pipe-node-items">
+            <li>Audits npm</li>
+            <li>Gitleaks secrets</li>
+          </ul>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node">
+          <div class="pipe-node-num">ÉTAPE 04</div>
+          <div class="pipe-node-title">build</div>
+          <ul class="pipe-node-items">
+            <li>Image backend</li>
+            <li>Image frontend</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+        <div>
+          <strong>Tag du Runner requis</strong>
+          Le GitLab Runner doit être enregistré avec le tag exact <code>bean-beacon</code>. Harbor est volontairement exclu — les images sont construites sans publication vers un registre privé.
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. PRODUCTION -->
+    <section class="doc-section" id="production">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 08</span>
+          <h2 class="section-title">Déploiement local de production</h2>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — déploiement production</span>
+        </div>
+        <div class="code-body"><span class="comment"># Définir le secret JWT (obligatoire)</span>
+$env:JWT_SECRET = <span class="str">"remplacer-par-un-secret-long-et-aleatoire"</span>
+
+<span class="comment"># Démarrer la version production</span>
+<span class="cmd">docker</span> compose <span class="flag">-f</span> docker-compose.prod.yml up <span class="flag">-d --build</span>
+
+<span class="comment"># Ou via pyinfra</span>
+<span class="cmd">pyinfra</span> @local deploy.py
+
+<span class="comment"># Application accessible sur :</span>
+<span class="comment"># http://localhost</span></div>
+      </div>
+
+      <div class="alert alert-danger">
+        <div class="alert-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <strong>Secret JWT obligatoire</strong>
+          La variable <code>JWT_SECRET</code> doit être définie avant tout démarrage en production. Utiliser une chaîne longue, aléatoire et gardée secrète.
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. SUPERVISION -->
+    <section class="doc-section" id="supervision">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 09</span>
+          <h2 class="section-title">Supervision</h2>
+        </div>
+      </div>
+      <div class="prose">
+        <p>Trois outils forment la couche d'observabilité de Bean Beacon. Ils tournent dans le même réseau Compose et communiquent via les noms de services Docker.</p>
+      </div>
+
+      <div class="supervision-grid">
+        <div class="sup-card">
+          <div class="sup-icon-wrap" style="background:#FEF3C7;">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h4>Prometheus</h4>
+          <p>Collecte les métriques du backend via scrape sur <code>/metrics</code></p>
+          <code>localhost:9090</code>
+        </div>
+        <div class="sup-card">
+          <div class="sup-icon-wrap" style="background:#FFF7ED;">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#EA580C" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <h4>Grafana</h4>
+          <p>Dashboards de visualisation. Données dans le volume <code>grafana_data</code></p>
+          <code>localhost:3001</code>
+        </div>
+        <div class="sup-card">
+          <div class="sup-icon-wrap" style="background:#EEF2FF;">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#6366F1" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <h4>Uptime Kuma</h4>
+          <p>Moniteur HTTP sur <code>/api/health</code> — intervalle 60 s, 2 retries</p>
+          <code>localhost:3002</code>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Dans Uptime Kuma, utiliser l'URL interne <code>http://backend:3000/api/health</code> (nom de service Docker) plutôt que <code>localhost</code>.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="code-label">PowerShell — test de supervision</span>
+        </div>
+        <div class="code-body"><span class="comment"># Arrêter puis redémarrer le backend</span>
+<span class="cmd">docker</span> compose stop backend
+<span class="cmd">docker</span> compose start backend
+
+<span class="comment"># Le moniteur doit passer en erreur,</span>
+<span class="comment"># puis redevenir vert après le redémarrage.</span></div>
+      </div>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <strong>Réinitialisation du mot de passe Grafana</strong>
+          En cas de blocage, réinitialiser sans supprimer les volumes :<br>
+          <code>docker compose exec grafana grafana cli admin reset-admin-password "NouveauMotDePasseFort!"</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. LIVRABLES -->
+    <section class="doc-section" id="livrables">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 10</span>
+          <h2 class="section-title">Livrables finaux</h2>
+        </div>
+      </div>
+
+      <div class="deliverables-grid">
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+          </div>
+          <div><h5>Frontend</h5><p>bean-beacon-frontend</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <div><h5>Backend API</h5><p>bean-beacon-backend</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <div><h5>Base de données</h5><p>Service mongo (Compose)</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div><h5>Compose dev</h5><p>docker-compose.yml</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div><h5>Compose prod</h5><p>docker-compose.prod.yml</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div><h5>Pipeline GitLab</h5><p>.gitlab-ci.yml</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <div><h5>Health check</h5><p>/api/health</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-6-6z"/></svg>
+          </div>
+          <div><h5>Tests backend</h5><p>bean-beacon-backend/tests</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>
+          </div>
+          <div><h5>Déploiement pyinfra</h5><p>deploy.py</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 9 3 3-3 3M13 15h3"/></svg>
+          </div>
+          <div><h5>Démo Windows</h5><p>demo.ps1</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div><h5>Supervision</h5><p>Prometheus · Grafana · Uptime Kuma</p></div>
+        </div>
+        <div class="del-item">
+          <div class="del-item-icon">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div><h5>Documentation</h5><p>docs/FINAL_DOCUMENTATION.md</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. PROBLÈMES -->
+    <section class="doc-section" id="problemes">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <span class="section-num">§ 11</span>
+          <h2 class="section-title">Problèmes fréquents</h2>
+        </div>
+      </div>
+
+      <div class="issues-list">
+        <div class="issue-item">
+          <h5>Aucun conteneur n'apparaît avec <code>docker compose ps</code></h5>
+          <p>La stack n'est pas démarrée. Lancer :</p>
+          <div class="code-wrap" style="margin:0.5rem 0 0;">
+            <div class="code-header">
+              <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+              <span class="code-label">Fix</span>
+            </div>
+            <div class="code-body"><span class="cmd">docker</span> compose up <span class="flag">-d --build</span></div>
+          </div>
+        </div>
+
+        <div class="issue-item">
+          <h5>L'API retourne <code>Route not found</code> sur <code>http://localhost:3000/</code></h5>
+          <p>Comportement normal : la route racine n'est pas définie. Utiliser <code>http://localhost:3000/api/health</code> à la place.</p>
+        </div>
+
+        <div class="issue-item">
+          <h5>Grafana refuse le mot de passe</h5>
+          <p>Réinitialiser sans supprimer le volume :</p>
+          <div class="code-wrap" style="margin:0.5rem 0 0;">
+            <div class="code-header">
+              <div class="code-header-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+              <span class="code-label">Fix</span>
+            </div>
+            <div class="code-body"><span class="cmd">docker</span> compose exec grafana grafana cli admin reset-admin-password <span class="str">"NouveauMotDePasseFort!"</span></div>
+          </div>
+        </div>
+
+        <div class="issue-item">
+          <h5>Préserver les données MongoDB et Grafana</h5>
+          <p>Toujours utiliser <code>docker compose stop</code>. La commande <code>docker compose down -v</code> supprime définitivement les volumes persistants.</p>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+</div><!-- /shell -->
+
+<script>
+// Active nav link on scroll
+const sections = document.querySelectorAll('.doc-section');
+const navLinks = document.querySelectorAll('nav a');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(a => a.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3, rootMargin: '-10% 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

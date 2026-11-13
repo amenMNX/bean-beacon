@@ -19,3 +19,4 @@ coverage/
 bean-beacon-backend/uploads
 .env.production
 .cache/
+./docs/

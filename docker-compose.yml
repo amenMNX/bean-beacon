@@ -97,6 +97,15 @@ services:
     depends_on:
       - prometheus
 
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: bean-beacon-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3002:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: bean-beacon-cadvisor
@@ -123,6 +132,7 @@ volumes:
   frontend-node-modules:
   prometheus_data:
   grafana_data:
+  uptime-kuma-data:
 
 networks:
   app-network:

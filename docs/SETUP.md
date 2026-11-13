@@ -11,33 +11,31 @@ Quick reference for setting up the project locally.
 - MongoDB (local or MongoDB Atlas)
 - Git
 
-## Automatic Setup (Unix/Linux/macOS)
+## Docker Compose Setup (Recommended)
 
-Run the setup script:
+From the repository root, start the application and its dependencies:
 ```bash
-chmod +x setup.sh
-./setup.sh
+docker compose up -d --build
 ```
 
-This will:
-- Check Node.js installation
-- Install frontend dependencies
-- Install backend dependencies
-- Create .env files from examples
+The frontend is available at `http://localhost:8081` and the API health endpoint at
+`http://localhost:3000/api/health`. Monitoring services are available at
+Prometheus `http://localhost:9090`, Grafana `http://localhost:3001`, and Uptime Kuma
+`http://localhost:3002`. Stop the services with `docker compose stop` to preserve volumes.
 
 ## Manual Setup
 
 ### Frontend
 
 ```bash
-cd bean-beacon-app-main
+cd bean-beacon-frontend
 npm install
 cp .env.example .env
 # Edit .env if needed
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:5173`
+Frontend will be available at `http://localhost:8081`
 
 ### Backend
 
@@ -86,7 +84,7 @@ MONGODB_URI=mongodb://localhost:27017/bean-beacon
 JWT_SECRET=your-secret-key (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 PORT=3000
 NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:8081
 ```
 The example secret is for local development only. Production requires a unique random `JWT_SECRET`.
 
@@ -101,14 +99,14 @@ Watch for: `Server running on port 3000`
 
 ### Terminal 2 - Frontend
 ```bash
-cd bean-beacon-app-main
+cd bean-beacon-frontend
 npm run dev
 ```
-Watch for: `Local: http://localhost:5173`
+Watch for: `Local: http://localhost:8081`
 
 ### Testing
 
-1. Open browser to `http://localhost:5173`
+1. Open browser to `http://localhost:8081`
 2. Should see landing page
 3. Click "Get Started" to register
 4. After login, enable geolocation
@@ -141,7 +139,7 @@ Watch for: `Local: http://localhost:5173`
 - `npm run dev` - Start dev server with hot reload
 - `npm run build` - Compile TypeScript
 - `npm start` - Run compiled code
-- `npm run test` - Run tests (coming soon)
+- `npm test -- run` - Run backend tests in non-watch mode
 
 ## IDE Setup
 
@@ -158,7 +156,7 @@ Install recommended extensions:
 
 ### View Frontend Code
 ```bash
-code bean-beacon-app-main
+code bean-beacon-frontend
 ```
 
 ### View Backend Code
@@ -169,7 +167,7 @@ code bean-beacon-backend
 ### Clean Install
 ```bash
 # Frontend
-cd bean-beacon-app-main
+cd bean-beacon-frontend
 rm -rf node_modules package-lock.json
 npm install
 
@@ -181,8 +179,8 @@ npm install
 
 ## Next Steps
 
-- Read the main [README.md](./README.md) for feature overview
+- Read the main [README.md](../README.md) for feature overview
 - Check [DEPLOYMENT.md](./DEPLOYMENT.md) for production deployment
-- Explore the [API documentation](./bean-beacon-backend/README.md)
+- Explore the [API documentation](../bean-beacon-backend/README.md)
 
 Happy coding! ☕

@@ -5,7 +5,7 @@ A modern full-stack web application that helps users discover nearby coffee shop
 ## 📸 Features
 
 ✅ **Location-Based Discovery** - Get your location and find nearby cafés on an interactive map
-✅ **Interactive Maps** - Leaflet-powered map with OpenStreetMap data
+✅ **Interactive Maps** - Interactive map with café locations and directions
 ✅ **Real-Time Search** - Search and filter cafés by distance, rating, WiFi, power outlets
 ✅ **User Reviews & Ratings** - Read and write reviews, rate your favorite spots
 ✅ **Favorites List** - Save and manage your favorite cafés
@@ -23,7 +23,7 @@ A modern full-stack web application that helps users discover nearby coffee shop
 - **React 18** - Modern UI library
 - **TypeScript** - Type-safe JavaScript
 - **Tailwind CSS** - Utility-first styling
-- **Leaflet** - Interactive maps
+- **Google Maps / OpenStreetMap** - Map display, directions, and café data
 - **React Query** - Data fetching & caching
 - **React Router** - Client-side routing
 - **shadcn/ui** - High-quality UI components
@@ -64,7 +64,7 @@ Stop the services with `docker compose down` (the database volume is retained).
 
 1. **Navigate to frontend directory:**
    ```bash
-   cd bean-beacon-app-main
+   cd bean-beacon-frontend
    ```
 
 2. **Install dependencies:**
@@ -120,10 +120,10 @@ Stop the services with `docker compose down` (the database volume is retained).
 ## 📁 Project Structure
 
 ```
-bean-beacon-app-main/
+bean-beacon-frontend/
 ├── src/
 │   ├── components/          # Reusable React components
-│   │   ├── CafeMap.tsx      # Interactive Leaflet map
+│   │   ├── CafeMap.tsx      # Interactive café map
 │   │   ├── CafeList.tsx     # List view of cafés
 │   │   ├── CafeDetails.tsx  # Detailed view with reviews
 │   │   ├── SearchFilters.tsx# Search & filter controls
@@ -184,7 +184,7 @@ bean-beacon-backend/
 
 ### 1. Geolocation & Maps
 - Uses browser Geolocation API to get user's current location
-- Leaflet with OpenStreetMap for interactive maps
+- Interactive café map with directions and location-based discovery
 - Custom markers for user location and cafés
 - Real-time marker updates when selecting cafés
 
@@ -292,7 +292,7 @@ JWT_SECRET=your_secure_secret_key
 JWT_EXPIRE=7d
 PORT=3000
 NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:8081
 OVERPASS_API_URL=https://overpass-api.de/api/interpreter
 NOMINATIM_API_URL=https://nominatim.openstreetmap.org
 ```

@@ -16,7 +16,7 @@ docker compose up -d --build
 
 This starts the services defined in `docker-compose.yml`, including the frontend, backend, MongoDB, and monitoring services if configured there.
 
-The current repository uses `bean-beacon-frontend` and `bean-beacon-backend`. The frontend is served on port `8081` by Docker; port `5173` is used when running Vite directly outside Docker.
+The current repository uses `bean-beacon-frontend` and `bean-beacon-backend`. The frontend listens on port `8081` both in Docker and when running Vite directly.
 
 For the complete current feature and API reference, see [CURRENT_STATUS.md](CURRENT_STATUS.md).
 
@@ -28,10 +28,10 @@ docker ps
 
 Open the app:
 
-- Development frontend: [http://localhost:8081](http://localhost:8081?utm_source=chatgpt.com)
-- Backend health check: [http://localhost:3000/api/health](http://localhost:3000/api/health?utm_source=chatgpt.com)
-- Prometheus: [http://localhost:9090](http://localhost:9090?utm_source=chatgpt.com)
-- Grafana: [http://localhost:3001](http://localhost:3001?utm_source=chatgpt.com)
+- Development frontend: [http://localhost:8081](http://localhost:8081)
+- Backend health check: [http://localhost:3000/api/health](http://localhost:3000/api/health)
+- Prometheus: [http://localhost:9090](http://localhost:9090)
+- Grafana: [http://localhost:3001](http://localhost:3001)
 
 ## 2. Start the production version
 
@@ -48,7 +48,7 @@ Check status:
 docker ps
 ```
 
-Open the production frontend at [http://localhost](http://localhost?utm_source=chatgpt.com).
+Open the production frontend at [http://localhost](http://localhost).
 
 ## 3. Restart after changing code
 
